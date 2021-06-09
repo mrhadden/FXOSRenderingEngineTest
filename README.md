@@ -1,5 +1,5 @@
 # FXOSRenderingEngineTest
-Java application to prototype hit testing and overlapping methods
+Java application to prototype hit testing and overlapping methods.  Clearly, this is not indicative of the speed, but does allow different approaches to be implemented quickly.
 
 ### Key
 
