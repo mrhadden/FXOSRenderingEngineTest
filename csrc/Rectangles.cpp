@@ -264,11 +264,11 @@ class Rectangles extends JPanel implements MouseMotionListener,MouseListener
 				System.out.println("FX_LOST_FOCUS: " + currentFocus.name);
 			}
 			
-			highhit.color = 1;
-			highhit.z = RECT.nextDepth++;
+			highhit.color = RGB(128,128,128);
+			//highhit.z = RECT.nextDepth++;
 			
-			renderlist.remove(highhit);
-			renderlist.add(highhit);
+			//renderlist.remove(highhit);
+			//renderlist.add(highhit);
 			
 			currentFocus = highhit;
 			

@@ -19,6 +19,7 @@ GFXRECT* rectangles[10] = {NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,};
 //RECT* prects[10] = {NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,};  
 
 PFXNODELIST recNodes = NULL;
+PGFXRECT    currentFocus = NULL;
 
 
 char debugOut[1024];
@@ -314,6 +315,73 @@ PGFXRECT GetSelectedRect(PFXNODELIST objList,int mx,int my)
 	return highRect;
 }
 
+BOOL OnClick(int xPos, int yPos)
+{
+	BOOL bRet = FALSE;
+	PGFXRECT highhit = GetSelectedRect(recNodes,xPos,yPos);
+	if(highhit!=NULL && currentFocus!=highhit && (highhit->attr & 1) == 0)
+	{
+		if(currentFocus!=NULL && currentFocus!=highhit)
+		{
+			currentFocus->color = 0;
+			OutputDebugStringA("FX_LOST_FOCUS:");	
+			OutputDebugStringA(currentFocus->name);	
+		}
+		
+		highhit->color = RGB(128,128,128);
+		highhit->z = NextDepth();
+		
+		//renderlist->remove(highhit);
+		//renderlist->add(highhit);
+		
+		currentFocus = highhit;
+		
+		//System->out->println("FX_GOT_FOCUS: " +  currentFocus->name);
+		sprintf(debugOut,"FX_GOT_FOCUS: %s \n",currentFocus->name);
+		OutputDebugStringA(debugOut);			
+		
+		/*
+		List<RECT> overlaps = GetOverLappedRect(currentFocus,hitlist);
+		if(overlaps!=NULL && overlaps->size() > 0)
+		{
+			for(RECT ol : overlaps)
+			{
+				if(!ol->name->equalsIgnoreCase("desktop"))
+				{
+					//System->out->println("\tOverlaps: " +  ol->name);
+					OutputDebugStringA("Overlaps:");	
+					OutputDebugStringA(ol->name);	
+
+					RECT ri = intersection(currentFocus,ol);
+					if(ri!=NULL)
+					{
+						interlist->add(ri);
+						//System->out->println("\tIntersect:name: " +  ri->name);
+						//System->out->println("\tIntersect:x: " +  ri->x);
+						//System->out->println("\tIntersect:y: " +  ri->y);
+						//System->out->println("\tIntersect:w: " +  ri->width);
+						//System->out->println("\tIntersect:h: " +  ri->height);
+					}
+				}
+			}
+		}
+		*/		
+		bRet = TRUE;
+	}
+	else if(highhit!=NULL && currentFocus==highhit)
+	{
+		//System->out->println(highhit->name + " STILL HAS FOCUS");
+	}	
+	
+	sprintf(debugOut,"WM_LBUTTONDOWN x: %d y: %d %p \n", 
+			xPos, yPos, highhit);
+
+	
+	OutputDebugStringA(debugOut);	
+	
+	return bRet;
+}
+
 
 LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
@@ -371,13 +439,8 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 			int xPos = GET_X_LPARAM(lParam); 
 			int yPos = GET_Y_LPARAM(lParam); 
 
-			PGFXRECT hit = GetSelectedRect(recNodes,xPos,yPos);
-
-			sprintf(debugOut,"WM_LBUTTONDOWN x: %d y: %d %p \n", 
-			        xPos, yPos, hit);
-
-			
-			OutputDebugStringA(debugOut);
+			if(OnClick(xPos,yPos))
+				InvalidateRect(hwnd, NULL, TRUE);
 		}
 		break;
 	case WM_RBUTTONUP:

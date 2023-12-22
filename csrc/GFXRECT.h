@@ -25,7 +25,7 @@ typedef GFXRECT* PGFXRECT;
 
 PGFXRECT AllocRect(const char* name, int x,int y,int width,int height);
 PGFXRECT AllocRectEx(const char* name, int x,int y,int width,int height,long z,int attr);
-
+long NextDepth();
 
 
 

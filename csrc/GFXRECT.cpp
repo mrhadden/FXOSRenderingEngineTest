@@ -4,6 +4,11 @@
 long nextDepth = 1;
 int  scaler    = 1;
 
+long NextDepth()
+{
+	return ++nextDepth;
+}
+
 PGFXRECT AllocRect(const char* name, int x,int y,int width,int height)
 {
 	return AllocRectEx(name,x,y,width,height,-1,0);
