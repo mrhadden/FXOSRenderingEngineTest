@@ -37,4 +37,12 @@ PGFXRECT AllocRectEx(const char* name, int x,int y,int width,int height,long z,i
 	return p;
 }
 
+public RECT toRECT(String name)
+{
+	return new RECT(name,topLeft.x,topLeft.y,bottomRight.x - topLeft.x,bottomRight.y - topLeft.y);
+}
 
+static public RECTP toRECTP(RECT r)
+{
+	return new RECTP(r.x,r.y,r.x + r.width,r.y+r.height);
+}

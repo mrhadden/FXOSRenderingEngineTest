@@ -137,6 +137,34 @@ PFXNODELIST GetOverLappedRect(PGFXRECT r,PFXNODELIST objList)
 	return rects;
 }
 
+PGFXRECT Intersection( PGFXRECT r, PGFXRECT rhs )
+{
+	if(r == NULL || rhs == NULL)
+		return NULL;
+	
+  RECTP   rectTemp = new RECTP();
+
+  RECTP rp   = RECTP->toRECTP(r);
+  RECTP rhsp = RECTP->toRECTP(rhs);
+  
+  rectTemp->topLeft->x       = Math->max( rhsp->topLeft->x, rp->topLeft->x );
+  rectTemp->bottomRight->x   = Math->min( rhsp->bottomRight->x, rp->bottomRight->x );
+  rectTemp->topLeft->y       = Math->max( rhsp->topLeft->y, rp->topLeft->y );
+  rectTemp->bottomRight->y   = Math->min( rhsp->bottomRight->y, rp->bottomRight->y );
+  
+
+  if ( rectTemp->topLeft->x > rectTemp->bottomRight->x )
+  {
+	 return NULL;
+  }
+  if ( rectTemp->topLeft->y > rectTemp->bottomRight->y )
+  {
+	return NULL;
+  }
+
+  return rectTemp->toRECT("With" + rhs->name);
+}
+
 
 void PrintList(){
 	struct node *p = head;
