@@ -8,6 +8,7 @@
 #include <stdio.h>
 
 #include "GFXRECT.h"
+#include "GFXRECTP.h"
 #include "Point.h"
 #include "List.h"
 
@@ -142,15 +143,15 @@ PGFXRECT Intersection( PGFXRECT r, PGFXRECT rhs )
 	if(r == NULL || rhs == NULL)
 		return NULL;
 	
-  RECTP   rectTemp = new RECTP();
+  PGFXRECTP rectTemp = AllocRectP(0,0,0,0);
 
-  RECTP rp   = RECTP->toRECTP(r);
-  RECTP rhsp = RECTP->toRECTP(rhs);
+  PGFXRECTP rp   = ToRECTP(r);
+  PGFXRECTP rhsp = ToRECTP(rhs);
   
-  rectTemp->topLeft->x       = Math->max( rhsp->topLeft->x, rp->topLeft->x );
-  rectTemp->bottomRight->x   = Math->min( rhsp->bottomRight->x, rp->bottomRight->x );
-  rectTemp->topLeft->y       = Math->max( rhsp->topLeft->y, rp->topLeft->y );
-  rectTemp->bottomRight->y   = Math->min( rhsp->bottomRight->y, rp->bottomRight->y );
+  rectTemp->topLeft->x       = RECTMAX( rhsp->topLeft->x, rp->topLeft->x );
+  rectTemp->bottomRight->x   = RECTMIN( rhsp->bottomRight->x, rp->bottomRight->x );
+  rectTemp->topLeft->y       = RECTMAX( rhsp->topLeft->y, rp->topLeft->y );
+  rectTemp->bottomRight->y   = RECTMIN( rhsp->bottomRight->y, rp->bottomRight->y );
   
 
   if ( rectTemp->topLeft->x > rectTemp->bottomRight->x )
@@ -162,7 +163,7 @@ PGFXRECT Intersection( PGFXRECT r, PGFXRECT rhs )
 	return NULL;
   }
 
-  return rectTemp->toRECT("With" + rhs->name);
+  return ToRECT(rectTemp, NULL);
 }
 
 
