@@ -1,6 +1,26 @@
 
 #include "FXWindow.h"
 
+
+PFXUIENV InitUIEnvironment()
+{
+    PFXUIENV env = (PFXUIENV)malloc(sizeof(FXUIENV));
+	if(env)
+	{
+		memset(list,0,sizeof(FXUIENV));
+        env->recNodes  = AllocList();
+        env->hitlist   = AllocList();
+        env->interlist = AllocList();
+
+
+        env->desktop = AllocRectEx("desktop",0,0,65000,65000,0,FX_ATTR_DESKTOP);
+        env->desktop->color = RGB(64,64,64);
+        ListAddStart(env->renderList, env->desktop);
+	}
+	return env;
+}
+
+
 RECT* ToWinRECT(RECT* rect, GFXRECT* grect)
 {
 	rect->top = grect->y;
