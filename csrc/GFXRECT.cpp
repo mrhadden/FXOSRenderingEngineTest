@@ -37,7 +37,10 @@ PGFXRECT AllocRectEx(const char* name, int x,int y,int width,int height,long z,i
 			p->z = z;
 		
 		p->color = 0;
+		p->renderColor = p->color;
 		p->attr = attr;
+
+		p->clientRect = NULL;
 	}
 	return p;
 }

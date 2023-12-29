@@ -1,4 +1,3 @@
-
 #ifndef __LIST__
 #define __LIST__
 
@@ -6,16 +5,19 @@
 #include <string.h>
 #include <stdlib.h>
 
-typedef struct node {
+typedef struct node 
+{
    void* data;
    struct node *next;
 }FXNODE;
 
 typedef FXNODE* PFXNODE;
 
-typedef struct node_list {
+typedef struct node_list 
+{
 	PFXNODE head;
 	PFXNODE current;
+   const char* name;
 }FXNODELIST;
 typedef FXNODELIST* PFXNODELIST;
 
@@ -34,8 +36,16 @@ void deletenode(void* key);
 int  searchlist(void* key);
 
 PFXNODELIST AllocList();
+PFXNODELIST AllocNamedList(const char* name);
+void ListClear(PFXNODELIST list);
+
 PFXNODE ListAddStart(PFXNODELIST list,void* data);
 PFXNODE ListAddEnd(PFXNODELIST list,void* data);
+
+PFXNODE ListRemove(PFXNODELIST list,void* data);
+
+void DeallocNode(PFXNODE node);
+void DeallocList(PFXNODELIST list);
 
 void VisitList(PFXNODELIST list, NodeVisit visit);
 
