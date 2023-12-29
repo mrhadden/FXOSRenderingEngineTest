@@ -17,7 +17,7 @@ BOOL fillBackground = TRUE;
 
 LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
-GFXRECT* rectangles[10] = {NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,};  
+//GFXRECT* rectangles[10] = {NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,};  
 
 //RECT* prects[10] = {NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,};  
 
@@ -29,11 +29,8 @@ PFXNODELIST hitlist      = NULL;
 PFXNODELIST interlist    = NULL;
 PGFXRECT    currentFocus = NULL;
 PGFXRECT    desktop      = NULL;
-
 PGFXRECT  	hoverFocus   = NULL;
 
-BOOL __redrawMode       = FALSE;
-BOOL __redrawBackground = FALSE;
 HWND chwnd = NULL;
 
 char debugOut[1024];
@@ -138,7 +135,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
 
     return 0;
 }
-
+/*
 PFXPOINT RectToPoint(PGFXRECT r,int whichPoint)
 {
 	switch(whichPoint)
@@ -227,7 +224,7 @@ PGFXRECT Intersection( PGFXRECT r, PGFXRECT rhs )
 
 	return ToRECT(rectTemp, NULL);
 }
-
+*/
 
 void DebugNode(struct node* p)
 {
@@ -260,9 +257,9 @@ PGFXRECT AddGRect(const char* name, int xPos, int yPos, int width, int height)
 	r->attr|=FX_ATTR_INVALID;
 
 	r->clientRect = AllocRectEx(name,
-							    xPos  + FXM_BORDERSIZE,
-							    yPos  + (FXM_BORDERSIZE + FXM_TITLEHEIGHT),
-							    width - (FXM_BORDERSIZE * 2),
+							    xPos   + FXM_BORDERSIZE,
+							    yPos   + (FXM_BORDERSIZE + FXM_TITLEHEIGHT),
+							    width  - (FXM_BORDERSIZE * 2),
 							    height - (FXM_BORDERSIZE + FXM_TITLEHEIGHT + FXM_BORDERSIZE),
 							    -1,
 								FX_ATTR_VISIBLE);
@@ -278,6 +275,7 @@ PGFXRECT AddGRect(const char* name, int xPos, int yPos, int width, int height)
 	//VisitList(renderList,DebugNode);
 	if(currentFocus)
 		currentFocus->attr|=FX_ATTR_INVALID;
+
 	currentFocus = r;
 
 	return r;
@@ -293,12 +291,10 @@ void RedrawRect(PFXNODE p)
 		HDC hdc =  GetDC(chwnd);
 
 		FillRect(hdc, ToWinRECT(&target, r), CreateSolidBrush((COLORREF)RGB(0,0,0)));
-		//FillRect(hdc, &target, CreateSolidBrush((COLORREF)RGB(0,0,0)));
 		ReleaseDC(chwnd, hdc);
 	}
 }
 
-//ol->attr|=FX_ATTR_INVALID;
 void RedrawInvalid(PFXNODE p)
 {
 	RECT target;
@@ -309,49 +305,22 @@ void RedrawInvalid(PFXNODE p)
 		HDC hdc =  GetDC(chwnd);
 
 		FillRect(hdc, ToWinRECT(&target, r), CreateSolidBrush((COLORREF)RGB(64,64,64)));
-		//FillRect(hdc, &target, CreateSolidBrush((COLORREF)RGB(0,0,0)));
 		ReleaseDC(chwnd, hdc);
 
 		r->attr&=(~FX_ATTR_INVALID);
 	}
 }
 
-
 VOID DrawRectangles(HDC hdc);
 
 void RedrawScreen(BOOL bBackground)
 {
-	/*
-	RECT target;
-
-	target.top = 0;
-	target.left = 0;
-	target.bottom = 100;
-	target.right = 100;
-
-	if(bBackground)
-		__redrawBackground = TRUE;
-	__redrawMode = TRUE;
-
-	HDC hdc =  GetDC(chwnd);
-
-	FillRect(hdc, &target, CreateSolidBrush((COLORREF)RGB(0,0,0)));
-	//InvalidateRect(chwnd, NULL, __redrawBackground);
-
-	ReleaseDC(chwnd, hdc);
-	*/
-	//VisitList(renderList,RedrawRect);
-	//VisitList(renderList,RedrawInvalid);
-
-	//Sleep(500);
-
 	HDC hdc =  GetDC(chwnd);
 	if(hdc)
 	{
 		DrawRectangles(hdc);
 		ReleaseDC(chwnd, hdc);
 	}
-
 }
 
 VOID DrawRectangles(HDC hdc)
@@ -392,12 +361,10 @@ VOID DrawRectangles(HDC hdc)
 	}
 
 }
-
+/*
 PGFXRECT GetSelectedRect(PFXNODELIST objList,int mx,int my,int whichAttr)
 {
 	PGFXRECT highRect = NULL;
-	
-	//OutputDebugStringA("GetSelectedRect::enter...\n");
 	
 	if(!objList)
 		return NULL;
@@ -406,19 +373,12 @@ PGFXRECT GetSelectedRect(PFXNODELIST objList,int mx,int my,int whichAttr)
 	while(p != NULL)
 	{
 		PGFXRECT r = (PGFXRECT)(p->data);
-		//OutputDebugStringA("GetSelectedRect::got rect...\n");
-
-		//r->attr|=FX_ATTR_INVALID;
-
 		if((r && r->attr & whichAttr) || (whichAttr == -1))
 		{
 			if(r->x < mx && (r->x + r->width) > mx)
 			{
 				if(r->y < my && (r->y + r->height) > my)
 				{
-					//sprintf(debugOut,"GetSelectedRect::got hit x: %d y: %d %p \n",mx, my, r->name);
-					//OutputDebugStringA(debugOut);	
-
 					if(highRect == NULL)
 					{
 						highRect = r;
@@ -430,27 +390,12 @@ PGFXRECT GetSelectedRect(PFXNODELIST objList,int mx,int my,int whichAttr)
 					}
 				}
 			}	
-			else
-			{
-				//OutputDebugStringA("GetSelectedRect::got miss...\n");
-			}
 		}
 		p = p->next;
 	}
-	/*
-	if(highRect)
-	{
-		sprintf(debugOut,"GetSelectedRect::EXIT highRect x: %d y: %d %p \n",mx, my, highRect->name);
-		OutputDebugStringA(debugOut);
-	}
-	*/
-	//OutputDebugStringA("GetSelectedRect::Exit...\n");
-	
-	//highRect->attr|=FX_ATTR_INVALID;
-
 	return highRect;
 }
-
+*/
 BOOL OnClick(int xPos, int yPos)
 {
 	BOOL bRet = FALSE;

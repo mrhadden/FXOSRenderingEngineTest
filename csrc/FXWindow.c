@@ -54,3 +54,128 @@ void AddTitleGadget(HDC hdc, PGFXRECT winRect)
                 winRect->name,
                 winRect->szname);	
 }
+
+
+PGFXRECT GetSelectedRect(PFXNODELIST objList,int mx,int my,int whichAttr)
+{
+	PGFXRECT highRect = NULL;
+	
+	if(!objList)
+		return NULL;
+	
+	PFXNODE p = objList->head;
+	while(p != NULL)
+	{
+		PGFXRECT r = (PGFXRECT)(p->data);
+		if((r && r->attr & whichAttr) || (whichAttr == -1))
+		{
+			if(r->x < mx && (r->x + r->width) > mx)
+			{
+				if(r->y < my && (r->y + r->height) > my)
+				{
+					if(highRect == NULL)
+					{
+						highRect = r;
+					}
+					else						
+					{
+						if(highRect->z < r->z)
+							highRect = r;
+					}
+				}
+			}	
+		}
+		p = p->next;
+	}
+	return highRect;
+}
+
+PFXPOINT RectToPoint(PGFXRECT r,int whichPoint)
+{
+	switch(whichPoint)
+	{
+	case 1:
+		return AllocPoint(r->x,r->y);
+	case 2:
+		return AllocPoint(r->x + r->width,r->y);
+	case 3:
+		return AllocPoint(r->x + r->width,r->y + r->height);
+	case 4:
+		return AllocPoint(r->x,r->y + r->height);
+	}
+	return NULL;
+}
+
+BOOL IsOverlappedPoints(PFXPOINT l1, PFXPOINT r1, PFXPOINT l2, PFXPOINT r2) 
+{ 
+	if(l1 &&  r1 && l2 && r2)
+	{
+		if (l1->x >= r2->x || l2->x >= r1->x) 
+		{ 
+			return FALSE; 
+		} 
+
+		// If one rectangle is above other  
+		if (l1->y >= r2->y || l2->y >= r1->y) 
+		{ 
+			return FALSE; 
+		} 
+		
+		return TRUE; 
+	}
+	return FALSE;
+} 
+
+BOOL IsOverlappedRects(PGFXRECT r1,PGFXRECT r2) 
+{
+	return IsOverlappedPoints(RectToPoint(r1,1), RectToPoint(r1,3), RectToPoint(r2,1), RectToPoint(r2,3)) ;
+}
+
+
+PFXNODELIST GetOverLappedRect(PGFXRECT r,PFXNODELIST objList)
+{
+	PFXNODELIST rects = AllocList();
+
+	PFXNODE p = objList->head;
+	while(p != NULL)
+	{
+		PGFXRECT r2 = (PGFXRECT)(p->data);
+		if(r!=r2 && IsOverlappedRects(r,r2))
+		{
+			ListAddStart(rects,r2);
+		}
+		
+		p = p->next;
+	}
+	return rects;
+}
+
+PGFXRECT Intersection( PGFXRECT r, PGFXRECT rhs )
+{
+	if(r == NULL || rhs == NULL)
+		return NULL;
+	
+	GFXRECTP rt;
+	PGFXRECTP rectTemp = AllocRectP(0,0,0,0);
+
+	PGFXRECTP rp   = ToRECTP(r);
+	PGFXRECTP rhsp = ToRECTP(rhs);
+
+	rectTemp->topLeft->x       = RECTMAX( rhsp->topLeft->x, rp->topLeft->x );
+	rectTemp->bottomRight->x   = RECTMIN( rhsp->bottomRight->x, rp->bottomRight->x );
+	rectTemp->topLeft->y       = RECTMAX( rhsp->topLeft->y, rp->topLeft->y );
+	rectTemp->bottomRight->y   = RECTMIN( rhsp->bottomRight->y, rp->bottomRight->y );
+
+
+	if ( rectTemp->topLeft->x > rectTemp->bottomRight->x )
+	{
+		return NULL;
+	}
+	if ( rectTemp->topLeft->y > rectTemp->bottomRight->y )
+	{
+	return NULL;
+	}
+
+	return ToRECT(rectTemp, NULL);
+}
+
