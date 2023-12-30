@@ -16,7 +16,8 @@ typedef struct _fx_ui_state
 {
 	PGFXRECT	    desktop;
 	BOOL 		    dragOn;
-	GFXRECT 	    dragStart; 
+	FXPOINT 	    dragStart; 
+    FXPOINT 	    dragEnd;
     PGFXRECT        focusCurrent;
     PGFXRECT  	    focusHover;
     struct timeval  leftClickTime;
@@ -66,6 +67,9 @@ PGFXRECT Intersection( PGFXRECT r, PGFXRECT rhs );
 //
 //
 //
+BOOL DragStart(PFXUIENV pguiEnv, int xPos, int  yPos);
+BOOL DragEnd(PFXUIENV pguiEnv, int xPos, int yPos);
+BOOL IsDragging(PFXUIENV pguiEnv);
 BOOL IsDblClick(PFXUIENV pguiEnv);
 
 int gettimeofday(struct timeval * tp, struct timezone * tzp);

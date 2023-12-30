@@ -203,6 +203,40 @@ PGFXRECT Intersection( PGFXRECT r, PGFXRECT rhs )
 	return ToRECT(rectTemp, NULL);
 }
 
+BOOL DragStart(PFXUIENV pguiEnv, int xPos, int yPos)
+{
+    if(pguiEnv)
+    {
+        pguiEnv->state->dragOn = TRUE;
+        pguiEnv->state->dragStart.x = xPos;
+        pguiEnv->state->dragStart.y = yPos;
+        return TRUE;
+    }
+
+    return FALSE;
+}
+
+BOOL DragEnd(PFXUIENV pguiEnv, int xPos, int yPos)
+{
+    if(pguiEnv)
+    {
+        pguiEnv->state->dragOn = FALSE;
+        pguiEnv->state->dragEnd.x = xPos;
+        pguiEnv->state->dragEnd.y = yPos;
+        return TRUE;
+    }
+    return FALSE;
+}
+
+BOOL IsDragging(PFXUIENV pguiEnv)
+{
+    if(pguiEnv)
+    {
+       return pguiEnv->state->dragOn;
+    }
+    return FALSE;
+}
+
 BOOL IsDblClick(PFXUIENV pguiEnv)
 {
 	BOOL bRet = FALSE;

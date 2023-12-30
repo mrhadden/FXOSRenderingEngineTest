@@ -13,25 +13,12 @@
 
 #include "FXWindow.h"
 
-BOOL fillBackground = TRUE;
+
+RECT dragRect;
 
 LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
-//GFXRECT* rectangles[10] = {NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,};  
-
-//RECT* prects[10] = {NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,};  
-
 PFXUIENV pguiEnv = NULL;
-
-//PFXNODELIST knownRects   = AllocNamedList("__known_recs");
-//PFXNODELIST renderList   = AllocNamedList("__render_recs");
-
-//PFXNODELIST recNodes     = NULL;
-//PFXNODELIST hitlist      = NULL;
-//PFXNODELIST interlist    = NULL;
-//PGFXRECT    currentFocus = NULL;
-//PGFXRECT    desktop      = NULL;
-//PGFXRECT  	hoverFocus   = NULL;
 
 HWND chwnd = NULL;
 
@@ -149,9 +136,9 @@ void Unhighlight()
 	VisitList(pguiEnv->renderList,__Unhighlight);
 }
 
-PGFXRECT AddGRect(const char* name, int xPos, int yPos, int width, int height)
+PGFXRECT AddRect(const char* name, int xPos, int yPos, int width, int height)
 {
-	OutputDebugStringA("AddGRect...\n");
+	//OutputDebugStringA("AddRect...\n");
 
 	PGFXRECT r = AllocRectEx(name,xPos,yPos,width,height,-1,FX_ATTR_VISIBLE);
 	r->szname = strlen(r->name);
@@ -188,8 +175,8 @@ PGFXRECT AddGRect(const char* name, int xPos, int yPos, int width, int height)
 void RedrawRect(PFXNODE p)
 {
 	RECT target;
-	PGFXRECT r = (PGFXRECT)p->data;
 
+	PGFXRECT r = (PGFXRECT)p->data;
 	if(r->attr & FX_ATTR_VISIBLE)
 	{
 		HDC hdc =  GetDC(chwnd);
@@ -202,8 +189,8 @@ void RedrawRect(PFXNODE p)
 void RedrawInvalid(PFXNODE p)
 {
 	RECT target;
-	PGFXRECT r = (PGFXRECT)p->data;
 
+	PGFXRECT r = (PGFXRECT)p->data;
 	if(r->attr & FX_ATTR_VISIBLE && (r->attr & FX_ATTR_INVALID))
 	{
 		HDC hdc =  GetDC(chwnd);
@@ -223,18 +210,6 @@ void RedrawVisible(PFXNODE p)
 	if(r->attr & FX_ATTR_VISIBLE)
 	{
 		r->attr|=(FX_ATTR_INVALID);
-	}
-}
-
-VOID DrawRectangles(HDC hdc, PFXNODELIST renderList);
-
-void RedrawScreen(BOOL bBackground)
-{
-	HDC hdc =  GetDC(chwnd);
-	if(hdc)
-	{
-		DrawRectangles(hdc,pguiEnv->renderList);
-		ReleaseDC(chwnd, hdc);
 	}
 }
 
@@ -276,11 +251,22 @@ VOID DrawRectangles(HDC hdc, PFXNODELIST renderList)
 	}
 }
 
+void RedrawScreen(BOOL bBackground)
+{
+	HDC hdc =  GetDC(chwnd);
+	if(hdc)
+	{
+		DrawRectangles(hdc,pguiEnv->renderList);
+		ReleaseDC(chwnd, hdc);
+	}
+}
+
 BOOL OnClick(int xPos, int yPos)
 {
 	BOOL bRet = FALSE;
 
-	if(IsDblClick(pguiEnv))
+	BOOL bIsDblClick = IsDblClick(pguiEnv);
+	if(bIsDblClick)
 	{
 		OutputDebugStringA("Double Click!!");
 	}
@@ -308,14 +294,12 @@ BOOL OnClick(int xPos, int yPos)
 		
 		pguiEnv->state->focusCurrent = highhit;
 		
-		//System->out->println("FX_GOT_FOCUS: " +  currentFocus->name);
 		sprintf(debugOut,"FX_GOT_FOCUS: %s \n",pguiEnv->state->focusCurrent->name);
 		OutputDebugStringA(debugOut);
 		
 		ListClear(pguiEnv->intersectionList);
 		
 		
-		//PFXNODELIST overlaps = GetOverLappedRect(currentFocus,hitlist);
 		//sprintf(debugOut,"Overlaps currentFocus: %s\n", pguiEnv->state->focusCurrent->name);
 		//OutputDebugStringA(debugOut);	
 		PFXNODELIST overlaps = GetOverLappedRect(pguiEnv->state->focusCurrent,pguiEnv->renderList);
@@ -332,13 +316,11 @@ BOOL OnClick(int xPos, int yPos)
 
 					//sprintf(debugOut,"\tOverlap: %s\n", ol->name);
 					//OutputDebugStringA(debugOut);
-
 					PGFXRECT ri = Intersection(pguiEnv->state->focusCurrent,ol);
 					if(ri!=NULL)
 					{
 						//sprintf(debugOut,"\tIntersecting: %s\n", ri->name);
 						//OutputDebugStringA(debugOut);						
-
 						ListAddStart(pguiEnv->intersectionList, ri);
 						//System->out->println("\tIntersect:name: " +  ri->name);
 						//System->out->println("\tIntersect:x: " +  ri->x);
@@ -361,10 +343,8 @@ BOOL OnClick(int xPos, int yPos)
 		OutputDebugStringA(debugOut);	
 	}	
 	
-	sprintf(debugOut,"WM_LBUTTONDOWN x: %d y: %d %p \n", 
-			xPos, yPos, highhit);
-
-	
+	//sprintf(debugOut,"WM_LBUTTONDOWN x: %d y: %d %p \n", 
+	//		xPos, yPos, highhit);
 	//OutputDebugStringA(debugOut);	
 	
 	return bRet;
@@ -446,22 +426,12 @@ BOOL OnCtlClick(int xPos, int yPos)
 		
 		bRet = TRUE;
 	}
-
-	
-	//sprintf(debugOut,"WM_LBUTTONDOWN WITH CONTROL x: %d y: %d %p \n", 
-	//		xPos, yPos, highhit);
-
-	
-	//OutputDebugStringA(debugOut);	
-	
 	return bRet;
 }
 
 BOOL OnMove(int xPos, int yPos)
 {
 	BOOL bRet = FALSE;
-
-	//static PGFXRECT currentFocus = NULL;
 
 	PGFXRECT highhit = GetSelectedRect(pguiEnv->renderList,xPos,yPos,-1);
 	if(highhit!=NULL)
@@ -484,8 +454,6 @@ BOOL OnMove(int xPos, int yPos)
 		}
 	}	
 	
-
-	
 	return bRet;
 }
 
@@ -500,35 +468,22 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
 	case WM_SIZE:
 		{
-			//fillBackground = TRUE;
 			VisitList(pguiEnv->renderList,RedrawVisible);
 			InvalidateRect(hwnd, NULL, TRUE);
 		}
 		break;
 	case WM_ERASEBKGND:
 		{
-			/*
-			if(!fillBackground)
-			{
-				return 1;
-			}	
-			*/		
+	
 		}
 		break;
     case WM_PAINT:
         {
             PAINTSTRUCT ps;
-            //RECT small;  
+ 
             HDC hdc = BeginPaint(hwnd, &ps);
 			if(hdc)
 			{
-				/*
-				sprintf(debugOut,"WM_PAINT top: %d left: %d bottom: %d right: %d\n", 
-						ps.rcPaint.top, ps.rcPaint.left, 
-						ps.rcPaint.bottom, ps.rcPaint.right);
-				OutputDebugStringA(debugOut);
-				*/
-				// All painting occurs here, between BeginPaint and EndPaint.
 				FillRect(hdc, &ps.rcPaint, CreateSolidBrush((COLORREF)RGB(64,64,64)));
 				DrawRectangles(hdc, pguiEnv->renderList);	
 				
@@ -541,6 +496,41 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 			int xPos = GET_X_LPARAM(lParam); 
 			int yPos = GET_Y_LPARAM(lParam); 
 
+			if(IsDragging(pguiEnv))
+			{
+				//OutputDebugStringA("Dragging!\n");	
+				HDC hdc =  GetDC(hwnd);
+				if(hdc)
+				{
+					LOGBRUSH LogBrush;
+					RECT target;
+
+					//HBRUSH hBack = CreateSolidBrush(RGB(64,64,64));	
+
+					//FrameRect(hdc,&dragRect,hBack);
+					DrawFocusRect(hdc,&dragRect);
+					
+
+
+					//HBRUSH hBrush = CreateHatchBrush(HS_HORIZONTAL,RGB(200,200,200));	
+
+					target.top = yPos;
+					target.left = xPos;
+					target.bottom = yPos + 100;
+					target.right = xPos + 100;
+					
+					//FrameRect(hdc,&target,hBrush);
+					DrawFocusRect(hdc,&target);
+
+					dragRect.top = yPos;
+					dragRect.left = xPos;
+					dragRect.bottom = yPos + 100;
+					dragRect.right = xPos + 100;
+
+					ReleaseDC(chwnd, hdc);
+				}				
+			}
+
 			if( GetKeyState(VK_SHIFT ) & 0x8000 )
 			{
 				OutputDebugStringA("LEFT SHIFT MOVE!\n");
@@ -549,8 +539,8 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 			{
 				if(!pguiEnv->state->focusHover)
 				{
-					sprintf(debugOut,"WM_MOUSEMOVE x: %d y: %d\n", 
-							xPos, yPos);
+					//sprintf(debugOut,"WM_MOUSEMOVE x: %d y: %d\n", 
+					//		xPos, yPos);
 					//OutputDebugStringA(debugOut);
 				}
 				OnMove(xPos,yPos);
@@ -566,23 +556,40 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
 			if( GetKeyState(VK_CONTROL ) & 0x8000 )
 			{
-				OutputDebugStringA("LEFT CONTROL CLICK!\n");
+				//OutputDebugStringA("LEFT CONTROL CLICK!\n");
 				if(OnCtlClick(xPos,yPos))
 				{
-					//InvalidateRect(hwnd, NULL, TRUE);
 					RedrawScreen(FALSE);
 				}
 			}
 			else if( GetKeyState(VK_SHIFT ) & 0x8000 )
 			{
-				OutputDebugStringA("LEFT SHIFT CLICK!\n");
-				StartDrag(pguiEnv);
+				//OutputDebugStringA("LEFT SHIFT CLICK!\n");
+				//DragStart(pguiEnv, xPos, yPos);
+
+				DragStart(pguiEnv,xPos,yPos);
+
+				dragRect.top    = yPos;
+				dragRect.left   = xPos;
+				dragRect.bottom = yPos + 100;
+				dragRect.right  = xPos + 100;
+
+				HDC hdc =  GetDC(hwnd);
+				if(hdc)
+				{
+					//HBRUSH hBrush = CreateHatchBrush(HS_HORIZONTAL,RGB(200,200,200));	
+				
+					//FrameRect(hdc,&dragRect,hBrush);
+					DrawFocusRect(hdc,&dragRect);
+
+					ReleaseDC(chwnd, hdc);
+				}	
+
 			}
 			else
 			{
 				if(OnClick(xPos,yPos))
 				{
-					//InvalidateRect(hwnd, NULL, TRUE);
 					RedrawScreen(FALSE);
 				}
 			}
@@ -590,7 +597,20 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 		break;
 	case WM_LBUTTONUP:
 		{
-			Drag(pguiEnv);	
+			int xPos = GET_X_LPARAM(lParam); 
+			int yPos = GET_Y_LPARAM(lParam);
+			if(IsDragging(pguiEnv))
+			{
+				HDC hdc =  GetDC(hwnd);
+				if(hdc)
+				{ 
+					//HBRUSH hBack = CreateSolidBrush(RGB(64,64,64));	
+
+					//FrameRect(hdc,&dragRect,hBack);	
+					DrawFocusRect(hdc,&dragRect);
+				}
+				DragEnd(pguiEnv, xPos, yPos);
+			}
 		}
 		break;
 	case WM_RBUTTONDOWN:
@@ -609,11 +629,10 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 			}
 			else
 			{
-				AddGRect(NULL, xPos, yPos, 400,200);
-				//InvalidateRect(hwnd, NULL, TRUE);
+				AddRect(NULL, xPos, yPos, 400,200);
 				RedrawScreen(TRUE);
-				sprintf(debugOut,"WM_RBUTTONDOWN x: %d y: %d\n", xPos, yPos);
-				OutputDebugStringA(debugOut);
+				//sprintf(debugOut,"WM_RBUTTONDOWN x: %d y: %d\n", xPos, yPos);
+				//OutputDebugStringA(debugOut);
 			}
 
 		}
