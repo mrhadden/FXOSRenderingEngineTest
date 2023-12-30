@@ -1,6 +1,8 @@
 #ifndef _FX_WINDOW
 #define _FX_WINDOW
 
+#include <stdint.h>
+
 #include "GFXRECT.h"
 #include "GFXRECTP.h"
 #include "List.h"
@@ -10,19 +12,27 @@ typedef struct _fx_metrics
     int metric;
 } FXMETRICS;
 
+typedef struct _fx_ui_state
+{
+	PGFXRECT	    desktop;
+	BOOL 		    dragOn;
+	GFXRECT 	    dragStart; 
+    PGFXRECT        focusCurrent;
+    PGFXRECT  	    focusHover;
+    struct timeval  leftClickTime;
+    struct timeval  rightClickTime;
+} FXUISTATE;
+typedef FXUISTATE* PFXUISTATE;
+
 typedef struct _fx_environment
 {
     PFXNODELIST knownRects;
     PFXNODELIST renderList;
-
-    PFXNODELIST recNodes     ;
-    PFXNODELIST hitlist      ;
-    PFXNODELIST interlist    ;
-    PGFXRECT    currentFocus ;
-    PGFXRECT    desktop      ;
-    PGFXRECT  	hoverFocus   ;
+    PFXNODELIST intersectionList;
+	PFXUISTATE  state;
 } FXUIENV;
 typedef FXUIENV* PFXUIENV;
+
 
 #define FXM_BORDERSIZE      2
 #define FXM_TRIMWIDTH       4
@@ -45,7 +55,7 @@ typedef struct _fx_window
     PFXNODELIST chromeList;
 } FXWINDOW;
 
-
+PFXUIENV InitUIEnvironment();
 PGFXRECT GetSelectedRect(PFXNODELIST objList,int mx,int my,int whichAttr);
 PFXPOINT RectToPoint(PGFXRECT r,int whichPoint);
 BOOL IsOverlappedPoints(PFXPOINT l1, PFXPOINT r1, PFXPOINT l2, PFXPOINT r2);
@@ -53,6 +63,11 @@ BOOL IsOverlappedRects(PGFXRECT r1,PGFXRECT r2);
 PFXNODELIST GetOverLappedRect(PGFXRECT r,PFXNODELIST objList);
 PGFXRECT Intersection( PGFXRECT r, PGFXRECT rhs );
 
+//
+//
+//
+BOOL IsDblClick(PFXUIENV pguiEnv);
 
+int gettimeofday(struct timeval * tp, struct timezone * tzp);
 
 #endif

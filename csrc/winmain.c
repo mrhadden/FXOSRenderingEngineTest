@@ -21,15 +21,17 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
 //RECT* prects[10] = {NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,};  
 
-PFXNODELIST knownRects   = AllocNamedList("__known_recs");
-PFXNODELIST renderList   = AllocNamedList("__render_recs");
+PFXUIENV pguiEnv = NULL;
 
-PFXNODELIST recNodes     = NULL;
-PFXNODELIST hitlist      = NULL;
-PFXNODELIST interlist    = NULL;
-PGFXRECT    currentFocus = NULL;
-PGFXRECT    desktop      = NULL;
-PGFXRECT  	hoverFocus   = NULL;
+//PFXNODELIST knownRects   = AllocNamedList("__known_recs");
+//PFXNODELIST renderList   = AllocNamedList("__render_recs");
+
+//PFXNODELIST recNodes     = NULL;
+//PFXNODELIST hitlist      = NULL;
+//PFXNODELIST interlist    = NULL;
+//PGFXRECT    currentFocus = NULL;
+//PGFXRECT    desktop      = NULL;
+//PGFXRECT  	hoverFocus   = NULL;
 
 HWND chwnd = NULL;
 
@@ -74,7 +76,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
     //const wchar_t CLASS_NAME[]  = L"Sample Window Class";
 	const wchar_t* CLASS_NAME  = L"Sample Window Class";
     
-	OutputDebugStringA("wWinMain...\n");
+	//OutputDebugStringA("wWinMain...\n");
 	
     WNDCLASS wc = { };
 
@@ -87,17 +89,9 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
     RegisterClass(&wc);
 
     // Create the window.
-	OutputDebugStringA("CreateWindowEx...\n");
+	//OutputDebugStringA("CreateWindowEx...\n");
 
-	recNodes  = AllocList();
-	hitlist   = AllocList();
-	interlist = AllocList();
-
-
-	desktop = AllocRectEx("desktop",0,0,65000,65000,0,FX_ATTR_DESKTOP);
-	desktop->color = RGB(64,64,64);
-	ListAddStart(renderList, desktop);
-	//ListAddStart(hitlist,    AllocRectEx("desktop",0,0,65000,65000,0,1));
+	pguiEnv = InitUIEnvironment();
 
     HWND hwnd = CreateWindowEx(
         0,                              // Optional window styles.
@@ -124,7 +118,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
     ShowWindow(hwnd, nCmdShow);
 
     // Run the message loop.
-	OutputDebugStringA("GetMessage...\n");
+	//OutputDebugStringA("GetMessage...\n");
 	
     MSG msg = { };
     while (GetMessage(&msg, NULL, 0, 0) > 0)
@@ -135,102 +129,12 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
 
     return 0;
 }
-/*
-PFXPOINT RectToPoint(PGFXRECT r,int whichPoint)
-{
-	switch(whichPoint)
-	{
-	case 1:
-		return AllocPoint(r->x,r->y);
-	case 2:
-		return AllocPoint(r->x + r->width,r->y);
-	case 3:
-		return AllocPoint(r->x + r->width,r->y + r->height);
-	case 4:
-		return AllocPoint(r->x,r->y + r->height);
-	}
-	return NULL;
-}
-
-BOOL IsOverlappedPoints(PFXPOINT l1, PFXPOINT r1, PFXPOINT l2, PFXPOINT r2) 
-{ 
-	if(l1 &&  r1 && l2 && r2)
-	{
-		if (l1->x >= r2->x || l2->x >= r1->x) 
-		{ 
-			return FALSE; 
-		} 
-
-		// If one rectangle is above other  
-		if (l1->y >= r2->y || l2->y >= r1->y) 
-		{ 
-			return FALSE; 
-		} 
-		
-		return TRUE; 
-	}
-	return FALSE;
-} 
-
-BOOL IsOverlappedRects(PGFXRECT r1,PGFXRECT r2) 
-{
-	return IsOverlappedPoints(RectToPoint(r1,1), RectToPoint(r1,3), RectToPoint(r2,1), RectToPoint(r2,3)) ;
-}
-
-
-PFXNODELIST GetOverLappedRect(PGFXRECT r,PFXNODELIST objList)
-{
-	PFXNODELIST rects = AllocList();
-
-	PFXNODE p = objList->head;
-	while(p != NULL)
-	{
-		PGFXRECT r2 = (PGFXRECT)(p->data);
-		if(r!=r2 && IsOverlappedRects(r,r2))
-		{
-			ListAddStart(rects,r2);
-		}
-		
-		p = p->next;
-	}
-	return rects;
-}
-
-PGFXRECT Intersection( PGFXRECT r, PGFXRECT rhs )
-{
-	if(r == NULL || rhs == NULL)
-		return NULL;
-	
-	GFXRECTP rt;
-	PGFXRECTP rectTemp = AllocRectP(0,0,0,0);
-
-	PGFXRECTP rp   = ToRECTP(r);
-	PGFXRECTP rhsp = ToRECTP(rhs);
-
-	rectTemp->topLeft->x       = RECTMAX( rhsp->topLeft->x, rp->topLeft->x );
-	rectTemp->bottomRight->x   = RECTMIN( rhsp->bottomRight->x, rp->bottomRight->x );
-	rectTemp->topLeft->y       = RECTMAX( rhsp->topLeft->y, rp->topLeft->y );
-	rectTemp->bottomRight->y   = RECTMIN( rhsp->bottomRight->y, rp->bottomRight->y );
-
-
-	if ( rectTemp->topLeft->x > rectTemp->bottomRight->x )
-	{
-		return NULL;
-	}
-	if ( rectTemp->topLeft->y > rectTemp->bottomRight->y )
-	{
-	return NULL;
-	}
-
-	return ToRECT(rectTemp, NULL);
-}
-*/
 
 void DebugNode(struct node* p)
 {
 	GFXRECT* g = (GFXRECT*)p->data;
 	
-	sprintf(debugOut,"%s[%d]: %d %d %d %d\n",g->name,g->z,g->x,g->y,g->width,g->height);	
+	sprintf(debugOut,"%s[%d]: %d %d %d %d %x\n",g->name,g->z,g->x,g->y,g->width,g->height,g->attr);	
 	OutputDebugStringA(debugOut);  
 }
 
@@ -242,9 +146,8 @@ void __Unhighlight(PFXNODE p)
 
 void Unhighlight()
 {
-	VisitList(renderList,__Unhighlight);
+	VisitList(pguiEnv->renderList,__Unhighlight);
 }
-
 
 PGFXRECT AddGRect(const char* name, int xPos, int yPos, int width, int height)
 {
@@ -270,13 +173,14 @@ PGFXRECT AddGRect(const char* name, int xPos, int yPos, int width, int height)
 	Unhighlight();
 
 
-	ListAddStart(knownRects,r);
-	ListAddEnd(renderList,r);
-	//VisitList(renderList,DebugNode);
-	if(currentFocus)
-		currentFocus->attr|=FX_ATTR_INVALID;
+	ListAddStart(pguiEnv->knownRects,r);
+	ListAddEnd(pguiEnv->renderList,r);
 
-	currentFocus = r;
+	//VisitList(renderList,DebugNode);
+	if(pguiEnv->state->focusCurrent)
+		pguiEnv->state->focusCurrent->attr|=FX_ATTR_INVALID;
+
+	pguiEnv->state->focusCurrent = r;
 
 	return r;
 }
@@ -311,19 +215,30 @@ void RedrawInvalid(PFXNODE p)
 	}
 }
 
-VOID DrawRectangles(HDC hdc);
+void RedrawVisible(PFXNODE p)
+{
+	RECT target;
+	PGFXRECT r = (PGFXRECT)p->data;
+
+	if(r->attr & FX_ATTR_VISIBLE)
+	{
+		r->attr|=(FX_ATTR_INVALID);
+	}
+}
+
+VOID DrawRectangles(HDC hdc, PFXNODELIST renderList);
 
 void RedrawScreen(BOOL bBackground)
 {
 	HDC hdc =  GetDC(chwnd);
 	if(hdc)
 	{
-		DrawRectangles(hdc);
+		DrawRectangles(hdc,pguiEnv->renderList);
 		ReleaseDC(chwnd, hdc);
 	}
 }
 
-VOID DrawRectangles(HDC hdc)
+VOID DrawRectangles(HDC hdc, PFXNODELIST renderList)
 {
 	RECT target;
 
@@ -359,84 +274,54 @@ VOID DrawRectangles(HDC hdc)
 		}
 		p = p->next;
 	}
+}
 
-}
-/*
-PGFXRECT GetSelectedRect(PFXNODELIST objList,int mx,int my,int whichAttr)
-{
-	PGFXRECT highRect = NULL;
-	
-	if(!objList)
-		return NULL;
-	
-	PFXNODE p = objList->head;
-	while(p != NULL)
-	{
-		PGFXRECT r = (PGFXRECT)(p->data);
-		if((r && r->attr & whichAttr) || (whichAttr == -1))
-		{
-			if(r->x < mx && (r->x + r->width) > mx)
-			{
-				if(r->y < my && (r->y + r->height) > my)
-				{
-					if(highRect == NULL)
-					{
-						highRect = r;
-					}
-					else						
-					{
-						if(highRect->z < r->z)
-							highRect = r;
-					}
-				}
-			}	
-		}
-		p = p->next;
-	}
-	return highRect;
-}
-*/
 BOOL OnClick(int xPos, int yPos)
 {
 	BOOL bRet = FALSE;
-	//PGFXRECT highhit = GetSelectedRect(hitlist,xPos,yPos);
-	PGFXRECT highhit = GetSelectedRect(renderList,xPos,yPos,FX_ATTR_VISIBLE);
-	if(highhit!=NULL && currentFocus!=highhit)
+
+	if(IsDblClick(pguiEnv))
+	{
+		OutputDebugStringA("Double Click!!");
+	}
+
+	PGFXRECT highhit = GetSelectedRect(pguiEnv->renderList,xPos,yPos,FX_ATTR_VISIBLE);
+	if(highhit!=NULL && pguiEnv->state->focusCurrent!=highhit)
 	{
 		OutputDebugStringA("OnClick::GetSelectedRect...\n");
 
-		if(currentFocus!=NULL && currentFocus!=highhit)
+		if(pguiEnv->state->focusCurrent!=NULL && pguiEnv->state->focusCurrent!=highhit)
 		{
-			currentFocus->renderColor = currentFocus->color;
-			currentFocus->attr|=FX_ATTR_INVALID;
+			pguiEnv->state->focusCurrent->renderColor = pguiEnv->state->focusCurrent->color;
+			pguiEnv->state->focusCurrent->attr|=FX_ATTR_INVALID;
 			OutputDebugStringA("FX_LOST_FOCUS:");	
-			OutputDebugStringA(currentFocus->name);	
+			OutputDebugStringA(pguiEnv->state->focusCurrent->name);	
 		}
 		
 		highhit->renderColor = RGB(52, 146, 235);
 		highhit->z           = NextDepth();
 		highhit->attr|=FX_ATTR_INVALID;
 		
-		PFXNODE t = ListRemove(renderList,highhit);
-		ListAddEnd(renderList,highhit);
+		PFXNODE t = ListRemove(pguiEnv->renderList,highhit);
+		ListAddEnd(pguiEnv->renderList,highhit);
 		DeallocNode(t);
 		
-		currentFocus = highhit;
+		pguiEnv->state->focusCurrent = highhit;
 		
 		//System->out->println("FX_GOT_FOCUS: " +  currentFocus->name);
-		sprintf(debugOut,"FX_GOT_FOCUS: %s \n",currentFocus->name);
+		sprintf(debugOut,"FX_GOT_FOCUS: %s \n",pguiEnv->state->focusCurrent->name);
 		OutputDebugStringA(debugOut);
 		
-		ListClear(interlist);
+		ListClear(pguiEnv->intersectionList);
 		
 		
 		//PFXNODELIST overlaps = GetOverLappedRect(currentFocus,hitlist);
-		sprintf(debugOut,"Overlaps currentFocus: %s\n", currentFocus->name);
-		OutputDebugStringA(debugOut);	
-		PFXNODELIST overlaps = GetOverLappedRect(currentFocus,renderList);
+		//sprintf(debugOut,"Overlaps currentFocus: %s\n", pguiEnv->state->focusCurrent->name);
+		//OutputDebugStringA(debugOut);	
+		PFXNODELIST overlaps = GetOverLappedRect(pguiEnv->state->focusCurrent,pguiEnv->renderList);
 		if(overlaps!=NULL)
 		{
-			OutputDebugStringA("OVERLAPS:\n");
+			//OutputDebugStringA("OVERLAPS:\n");
 			PFXNODE node = overlaps->head;
 			while(node != NULL)
 			{
@@ -445,16 +330,16 @@ BOOL OnClick(int xPos, int yPos)
 				{
 					//ol->attr|=FX_ATTR_INVALID;
 
-					sprintf(debugOut,"\tOverlap: %s\n", ol->name);
-					OutputDebugStringA(debugOut);
+					//sprintf(debugOut,"\tOverlap: %s\n", ol->name);
+					//OutputDebugStringA(debugOut);
 
-					PGFXRECT ri = Intersection(currentFocus,ol);
+					PGFXRECT ri = Intersection(pguiEnv->state->focusCurrent,ol);
 					if(ri!=NULL)
 					{
-						sprintf(debugOut,"\tIntersecting: %s\n", ri->name);
-						OutputDebugStringA(debugOut);						
+						//sprintf(debugOut,"\tIntersecting: %s\n", ri->name);
+						//OutputDebugStringA(debugOut);						
 
-						ListAddStart(interlist, ri);
+						ListAddStart(pguiEnv->intersectionList, ri);
 						//System->out->println("\tIntersect:name: " +  ri->name);
 						//System->out->println("\tIntersect:x: " +  ri->x);
 						//System->out->println("\tIntersect:y: " +  ri->y);
@@ -469,7 +354,7 @@ BOOL OnClick(int xPos, int yPos)
 		
 		bRet = TRUE;
 	}
-	else if(highhit!=NULL && currentFocus==highhit)
+	else if(highhit!=NULL && pguiEnv->state->focusCurrent==highhit)
 	{
 		//System->out->println(highhit->name + " STILL HAS FOCUS");
 		sprintf(debugOut,"%s Still Has Focus.\n", highhit->name);
@@ -489,16 +374,16 @@ BOOL OnCtlClick(int xPos, int yPos)
 {
 	BOOL bRet = FALSE;
 	//PGFXRECT highhit = GetSelectedRect(hitlist,xPos,yPos);
-	PGFXRECT highhit = GetSelectedRect(renderList,xPos,yPos,FX_ATTR_VISIBLE);
+	PGFXRECT highhit = GetSelectedRect(pguiEnv->renderList,xPos,yPos,FX_ATTR_VISIBLE);
 	if(highhit!=NULL)
 	{
-		OutputDebugStringA("OnCtlClick::GetSelectedRect...\n");
+		//OutputDebugStringA("OnCtlClick::GetSelectedRect...\n");
 
-		if(currentFocus!=NULL && currentFocus!=highhit)
+		if(pguiEnv->state->focusCurrent!=NULL && pguiEnv->state->focusCurrent!=highhit)
 		{
-			currentFocus->renderColor = currentFocus->color;
-			OutputDebugStringA("FX_LOST_FOCUS:");	
-			OutputDebugStringA(currentFocus->name);	
+			pguiEnv->state->focusCurrent->renderColor = pguiEnv->state->focusCurrent->color;
+			//OutputDebugStringA("FX_LOST_FOCUS:");	
+			//OutputDebugStringA(pguiEnv->state->focusCurrent->name);	
 		}
 		
 		highhit->attr&=(~FX_ATTR_VISIBLE);
@@ -506,27 +391,27 @@ BOOL OnCtlClick(int xPos, int yPos)
 		highhit->renderColor = (COLORREF)RGB(64,64,64);
 		highhit->z           = 0;
 		
-		PFXNODE t = ListRemove(renderList,highhit);
-		ListAddStart(renderList,highhit);
+		PFXNODE t = ListRemove(pguiEnv->renderList,highhit);
+		ListAddStart(pguiEnv->renderList,highhit);
 		DeallocNode(t);
 		
 		// must add previous
-		currentFocus = highhit;
+		pguiEnv->state->focusCurrent = highhit;
 		
-		//System->out->println("FX_GOT_FOCUS: " +  currentFocus->name);
-		sprintf(debugOut,"OnCtlClick::FX_GOT_FOCUS: %s \n",currentFocus->name);
-		OutputDebugStringA(debugOut);
+		//System->out->println("FX_GOT_FOCUS: " +  pguiEnv->state->focusCurrent->name);
+		//sprintf(debugOut,"OnCtlClick::FX_GOT_FOCUS: %s \n",pguiEnv->state->focusCurrent->name);
+		//OutputDebugStringA(debugOut);
 		
-		ListClear(interlist);
+		//ListClear(pguiEnv->intersectionList);
 		
 		
-		//PFXNODELIST overlaps = GetOverLappedRect(currentFocus,hitlist);
-		sprintf(debugOut,"OnCtlClick::Overlaps currentFocus: %s\n", currentFocus->name);
-		OutputDebugStringA(debugOut);	
-		PFXNODELIST overlaps = GetOverLappedRect(currentFocus,renderList);
+		//PFXNODELIST overlaps = GetOverLappedRect(pguiEnv->state->focusCurrent,hitlist);
+		//sprintf(debugOut,"OnCtlClick::Overlaps currentFocus: %s\n", pguiEnv->state->focusCurrent->name);
+		//OutputDebugStringA(debugOut);	
+		PFXNODELIST overlaps = GetOverLappedRect(pguiEnv->state->focusCurrent,pguiEnv->renderList);
 		if(overlaps!=NULL)
 		{
-			OutputDebugStringA("OnCtlClick::OVERLAPS:\n");
+			//OutputDebugStringA("OnCtlClick::OVERLAPS:\n");
 			PFXNODE node = overlaps->head;
 			while(node != NULL)
 			{
@@ -535,22 +420,24 @@ BOOL OnCtlClick(int xPos, int yPos)
 				{
 					ol->attr|=FX_ATTR_INVALID;
 
-					sprintf(debugOut,"\tOverlap: %s\n", ol->name);
-					OutputDebugStringA(debugOut);
+					//sprintf(debugOut,"\tOverlap: %s\n", ol->name);
+					//OutputDebugStringA(debugOut);
 
-					PGFXRECT ri = Intersection(currentFocus,ol);
+					/*
+					PGFXRECT ri = Intersection(pguiEnv->state->focusCurrent,ol);
 					if(ri!=NULL)
 					{
-						sprintf(debugOut,"\tIntersecting: %s\n", ri->name);
-						OutputDebugStringA(debugOut);						
+						//sprintf(debugOut,"\tIntersecting: %s\n", ri->name);
+						//OutputDebugStringA(debugOut);						
 
-						ListAddStart(interlist, ri);
+						ListAddStart(pguiEnv->intersectionList, ri);
 						//System->out->println("\tIntersect:name: " +  ri->name);
 						//System->out->println("\tIntersect:x: " +  ri->x);
 						//System->out->println("\tIntersect:y: " +  ri->y);
 						//System->out->println("\tIntersect:w: " +  ri->width);
 						//System->out->println("\tIntersect:h: " +  ri->height);
 					}
+					*/
 				}
 				node = node->next;
 			}
@@ -561,8 +448,8 @@ BOOL OnCtlClick(int xPos, int yPos)
 	}
 
 	
-	sprintf(debugOut,"WM_LBUTTONDOWN WITH CONTROL x: %d y: %d %p \n", 
-			xPos, yPos, highhit);
+	//sprintf(debugOut,"WM_LBUTTONDOWN WITH CONTROL x: %d y: %d %p \n", 
+	//		xPos, yPos, highhit);
 
 	
 	//OutputDebugStringA(debugOut);	
@@ -576,22 +463,22 @@ BOOL OnMove(int xPos, int yPos)
 
 	//static PGFXRECT currentFocus = NULL;
 
-	PGFXRECT highhit = GetSelectedRect(renderList,xPos,yPos,-1);
+	PGFXRECT highhit = GetSelectedRect(pguiEnv->renderList,xPos,yPos,-1);
 	if(highhit!=NULL)
 	{
 
-		if(highhit!=hoverFocus)
+		if(highhit!=pguiEnv->state->focusHover)
 		{
-			if(hoverFocus)
+			if(pguiEnv->state->focusHover)
 			{
-				//sprintf(debugOut,"FX_MOUSE_LEAVE_1: %s \n",hoverFocus->name);
+				//sprintf(debugOut,"FX_MOUSE_LEAVE_1: %s \n",pguiEnv->state->focusHover->name);
 				//OutputDebugStringA(debugOut);
-				hoverFocus->renderColor = hoverFocus->color;
-				hoverFocus = NULL;
+				pguiEnv->state->focusHover->renderColor = pguiEnv->state->focusHover->color;
+				pguiEnv->state->focusHover = NULL;
 			}
-			hoverFocus = highhit;
-			hoverFocus->renderColor = RGB(128,128,128);
-			//sprintf(debugOut,"FX_MOUSE_ENTER: %s \n",hoverFocus->name);
+			pguiEnv->state->focusHover = highhit;
+			pguiEnv->state->focusHover->renderColor = RGB(128,128,128);
+			//sprintf(debugOut,"FX_MOUSE_ENTER: %s \n",pguiEnv->state->focusHover->name);
 			//OutputDebugStringA(debugOut);
 			bRet = TRUE;
 		}
@@ -614,6 +501,8 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 	case WM_SIZE:
 		{
 			//fillBackground = TRUE;
+			VisitList(pguiEnv->renderList,RedrawVisible);
+			InvalidateRect(hwnd, NULL, TRUE);
 		}
 		break;
 	case WM_ERASEBKGND:
@@ -629,37 +518,22 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     case WM_PAINT:
         {
             PAINTSTRUCT ps;
-            RECT small;  
+            //RECT small;  
             HDC hdc = BeginPaint(hwnd, &ps);
-
-			/*
-			sprintf(debugOut,"WM_PAINT top: %d left: %d bottom: %d right: %d\n", 
-			        ps.rcPaint.top, ps.rcPaint.left, 
-					ps.rcPaint.bottom, ps.rcPaint.right);
-			OutputDebugStringA(debugOut);
-			*/
-            // All painting occurs here, between BeginPaint and EndPaint.
-            
-
-			FillRect(hdc, &ps.rcPaint, CreateSolidBrush((COLORREF)RGB(64,64,64)));
-			/*
-			if(fillBackground)
+			if(hdc)
 			{
+				/*
+				sprintf(debugOut,"WM_PAINT top: %d left: %d bottom: %d right: %d\n", 
+						ps.rcPaint.top, ps.rcPaint.left, 
+						ps.rcPaint.bottom, ps.rcPaint.right);
+				OutputDebugStringA(debugOut);
+				*/
+				// All painting occurs here, between BeginPaint and EndPaint.
 				FillRect(hdc, &ps.rcPaint, CreateSolidBrush((COLORREF)RGB(64,64,64)));
-				fillBackground = FALSE;
+				DrawRectangles(hdc, pguiEnv->renderList);	
+				
+				EndPaint(hwnd, &ps);
 			}
-			*/
-			DrawRectangles(hdc);	
-            /*
-			small.top = 10;
-	        small.left = 10;
-            small.right = 100;
-            small.bottom = 100;	    
-            FillRect(hdc, &small, (HBRUSH) (COLOR_WINDOW+2));
-			*/
-			//Output("top: %d left: %d", ps.rcPaint.top, ps.rcPaint.left);
-			
-            EndPaint(hwnd, &ps);
         }
         return 0;
 	case WM_MOUSEMOVE:
@@ -667,15 +541,22 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 			int xPos = GET_X_LPARAM(lParam); 
 			int yPos = GET_Y_LPARAM(lParam); 
 
-			if(!hoverFocus)
+			if( GetKeyState(VK_SHIFT ) & 0x8000 )
 			{
-				sprintf(debugOut,"WM_MOUSEMOVE x: %d y: %d\n", 
-						xPos, yPos);
-				//OutputDebugStringA(debugOut);
+				OutputDebugStringA("LEFT SHIFT MOVE!\n");
 			}
-			OnMove(xPos,yPos);
-			//if(OnMove(xPos,yPos))
-			//	InvalidateRect(hwnd, NULL, TRUE);
+			else
+			{
+				if(!pguiEnv->state->focusHover)
+				{
+					sprintf(debugOut,"WM_MOUSEMOVE x: %d y: %d\n", 
+							xPos, yPos);
+					//OutputDebugStringA(debugOut);
+				}
+				OnMove(xPos,yPos);
+				//if(OnMove(xPos,yPos))
+				//	InvalidateRect(hwnd, NULL, TRUE);				
+			}
 		}
 		break;
 	case WM_LBUTTONDOWN:
@@ -692,6 +573,11 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 					RedrawScreen(FALSE);
 				}
 			}
+			else if( GetKeyState(VK_SHIFT ) & 0x8000 )
+			{
+				OutputDebugStringA("LEFT SHIFT CLICK!\n");
+				StartDrag(pguiEnv);
+			}
 			else
 			{
 				if(OnClick(xPos,yPos))
@@ -700,6 +586,11 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 					RedrawScreen(FALSE);
 				}
 			}
+		}
+		break;
+	case WM_LBUTTONUP:
+		{
+			Drag(pguiEnv);	
 		}
 		break;
 	case WM_RBUTTONDOWN:
@@ -711,6 +602,10 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 			{
 				OutputDebugStringA("RIGHT CONTROL CLICK!\n");
 				RedrawScreen(TRUE);
+			}
+			else if( GetKeyState(VK_SHIFT ) & 0x8000 )
+			{
+				VisitList(pguiEnv->renderList,DebugNode);
 			}
 			else
 			{
@@ -732,12 +627,12 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 			        xPos, yPos);
 			//OutputDebugStringA(debugOut);
 
-			if(hoverFocus)
+			if(pguiEnv->state->focusHover)
 			{
-				//sprintf(debugOut,"FX_MOUSE_LEAVE_2: %s \n",hoverFocus->name);
+				//sprintf(debugOut,"FX_MOUSE_LEAVE_2: %s \n",pguiEnv->state->focusHover->name);
 				//OutputDebugStringA(debugOut);
-				hoverFocus->renderColor = hoverFocus->color;
-				hoverFocus = NULL;
+				pguiEnv->state->focusHover->renderColor = pguiEnv->state->focusHover->color;
+				pguiEnv->state->focusHover = NULL;
 			}
 
 

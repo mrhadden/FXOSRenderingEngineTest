@@ -7,15 +7,19 @@ PFXUIENV InitUIEnvironment()
     PFXUIENV env = (PFXUIENV)malloc(sizeof(FXUIENV));
 	if(env)
 	{
-		memset(list,0,sizeof(FXUIENV));
-        env->recNodes  = AllocList();
-        env->hitlist   = AllocList();
-        env->interlist = AllocList();
-
-
-        env->desktop = AllocRectEx("desktop",0,0,65000,65000,0,FX_ATTR_DESKTOP);
-        env->desktop->color = RGB(64,64,64);
-        ListAddStart(env->renderList, env->desktop);
+		memset(env,0,sizeof(FXUIENV));
+		env->state = (PFXUISTATE)malloc(sizeof(FXUISTATE));
+		memset(env->state,0,sizeof(FXUISTATE));
+		
+		env->knownRects = AllocNamedList("__known_rects");
+		env->renderList = AllocNamedList("__render_rects");
+		
+        env->intersectionList  = AllocNamedList("__intersections");
+		
+        env->state->desktop = AllocRectEx("desktop",0,0,65000,65000,0,FX_ATTR_DESKTOP);
+        env->state->desktop->color = RGB(64,64,64);
+        
+		ListAddStart(env->renderList, env->state->desktop);	
 	}
 	return env;
 }
@@ -199,3 +203,47 @@ PGFXRECT Intersection( PGFXRECT r, PGFXRECT rhs )
 	return ToRECT(rectTemp, NULL);
 }
 
+BOOL IsDblClick(PFXUIENV pguiEnv)
+{
+	BOOL bRet = FALSE;
+
+	struct timeval now;
+
+	gettimeofday(&now, NULL);
+
+	unsigned long duration = (now.tv_sec - pguiEnv->state->leftClickTime.tv_sec) * 1000000 + now.tv_usec - pguiEnv->state->leftClickTime.tv_usec;
+
+	memcpy(&pguiEnv->state->leftClickTime,&now,sizeof(struct timeval));
+
+	if(duration < 180000L)
+	{
+		bRet = TRUE;
+	}	
+
+	return bRet;
+}
+
+/*
+
+
+*/
+int gettimeofday(struct timeval * tp, struct timezone * tzp)
+{
+    // Note: some broken versions only have 8 trailing zero's, the correct epoch has 9 trailing zero's
+    // This magic number is the number of 100 nanosecond intervals since January 1, 1601 (UTC)
+    // until 00:00:00 January 1, 1970 
+    static const uint64_t EPOCH = ((uint64_t) 116444736000000000ULL);
+
+    SYSTEMTIME  system_time;
+    FILETIME    file_time;
+    uint64_t    time;
+
+    GetSystemTime( &system_time );
+    SystemTimeToFileTime( &system_time, &file_time );
+    time =  ((uint64_t)file_time.dwLowDateTime )      ;
+    time += ((uint64_t)file_time.dwHighDateTime) << 32;
+
+    tp->tv_sec  = (long) ((time - EPOCH) / 10000000L);
+    tp->tv_usec = (long) (system_time.wMilliseconds * 1000);
+    return 0;
+}
