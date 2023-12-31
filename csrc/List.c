@@ -183,6 +183,19 @@ PFXNODE ListRemove(PFXNODELIST list,void* data)
    
 }
 
+PFXNODE ListSearch(PFXNODELIST list,void* key)
+{
+   PFXNODE temp = list->head;
+   while(temp != NULL) 
+   {
+      if(temp->data == key) 
+      {
+         return temp;
+      }
+      temp=temp->next;
+   }
+   return NULL;   
+}
 
 void VisitList(PFXNODELIST list, NodeVisit visit)
 {

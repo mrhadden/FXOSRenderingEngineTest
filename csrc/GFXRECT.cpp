@@ -44,3 +44,32 @@ PGFXRECT AllocRectEx(const char* name, int x,int y,int width,int height,long z,i
 	}
 	return p;
 }
+
+PGFXRECT CopyRect(PGFXRECT src)
+{
+	PGFXRECT p = (PGFXRECT)malloc(sizeof(GFXRECT));	
+	if(p)
+	{
+		char* name = NULL;
+		if(src->name)
+		{
+			char* nname = (char*)malloc(64);
+			strcpy(nname,src->name);
+			name = nname;
+		}
+		
+		p->name = (const char*)name;
+		p->x = src->x;
+		p->y = src->y;
+		p->width = src->width;
+		p->height = src->height;
+		p->z = src->z;
+		
+		p->color = src->color;
+		p->renderColor = src->renderColor;
+		p->attr = src->attr;
+
+		p->clientRect = src->clientRect;
+	}
+	return p;	
+}

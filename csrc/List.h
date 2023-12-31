@@ -9,6 +9,7 @@ typedef struct node
 {
    void* data;
    struct node *next;
+   struct node *previous;
 }FXNODE;
 
 typedef FXNODE* PFXNODE;
@@ -43,6 +44,8 @@ PFXNODE ListAddStart(PFXNODELIST list,void* data);
 PFXNODE ListAddEnd(PFXNODELIST list,void* data);
 
 PFXNODE ListRemove(PFXNODELIST list,void* data);
+
+PFXNODE ListSearch(PFXNODELIST list,void* data);
 
 void DeallocNode(PFXNODE node);
 void DeallocList(PFXNODELIST list);

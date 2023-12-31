@@ -114,6 +114,24 @@ PGFXRECT GetSelectedRect(PFXNODELIST objList,int mx,int my,int whichAttr)
 	return highRect;
 }
 
+BOOL PointInRect(PGFXRECT r,int mx,int my)
+{
+    BOOL bRet = FALSE;
+
+    if(r)
+    {
+        if(r->x < mx && (r->x + r->width) > mx)
+        {
+            if(r->y < my && (r->y + r->height) > my)
+            {
+                bRet = TRUE;
+            }
+        }	
+    }
+
+	return bRet;
+}
+
 PFXPOINT RectToPoint(PGFXRECT r,int whichPoint)
 {
 	switch(whichPoint)
@@ -255,6 +273,21 @@ BOOL IsDblClick(PFXUIENV pguiEnv)
 	}	
 
 	return bRet;
+}
+
+BOOL MoveRect(PGFXRECT r, int xPos, int yPos )
+{
+    r->y = yPos;
+    r->x = xPos;
+    if(r->clientRect)
+    {
+        r->clientRect->x = xPos + FXM_BORDERSIZE;
+		r->clientRect->y = yPos + (FXM_BORDERSIZE + FXM_TITLEHEIGHT);       
+    }
+    r->attr|=FX_ATTR_INVALID;
+    //r->attr|=FX_ATTR_ERASE;
+
+    return TRUE;
 }
 
 /*

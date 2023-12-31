@@ -10,6 +10,7 @@
 #define FX_ATTR_DESKTOP		 0x8000
 #define FX_ATTR_INVALID		 0x4000
 #define FX_ATTR_ERASE        0x2000
+#define FX_ATTR_DELETE       0x1000
 
 typedef struct _fx_rect
 {
@@ -34,6 +35,8 @@ typedef GFXRECT* PGFXRECT;
 
 PGFXRECT AllocRect(const char* name, int x,int y,int width,int height);
 PGFXRECT AllocRectEx(const char* name, int x,int y,int width,int height,long z,int attr);
+PGFXRECT CopyRect(PGFXRECT src);
+
 long NextDepth();
 
 

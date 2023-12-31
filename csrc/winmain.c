@@ -26,6 +26,53 @@ char debugOut[1024];
 
 ApplyWindowAttr fApplyChrome[] = {AddCloseGadget,AddMinGadget,AddTitleGadget,NULL};
 
+void RedrawScreen(BOOL bBackground);
+
+void MoveFXWindow(PFXUIENV pEnv, PGFXRECT p ,int xPos, int yPos)
+{
+	HDC hdc =  GetDC(chwnd);
+	if(hdc)
+	{ 
+		RECT target;
+
+		DrawFocusRect(hdc,&dragRect);
+		
+		PFXNODE t = ListRemove(pEnv->renderList,p);
+		sprintf(debugOut,"ListRemove %p\n",t);	
+		OutputDebugStringA(debugOut);
+
+		PGFXRECT g = (PGFXRECT)(t->data);
+		sprintf(debugOut,"RECT %s\n",g->name);	
+		OutputDebugStringA(debugOut);
+
+		PFXNODELIST overlaps = GetOverLappedRect(g,pEnv->renderList);
+		if(overlaps!=NULL)
+		{
+			//OutputDebugStringA("MoveFXWindow::OVERLAPS:\n");
+			PFXNODE node = overlaps->head;
+			while(node != NULL)
+			{
+				PGFXRECT ol = (PGFXRECT)(node->data);
+				if(ol && ((ol->attr & FX_ATTR_DESKTOP) != FX_ATTR_DESKTOP))
+				{
+					ol->attr|=FX_ATTR_INVALID;
+				}
+				node = node->next;
+			}
+			DeallocList(overlaps);
+		}		
+
+		FillRect(hdc, ToWinRECT(&target,g), CreateSolidBrush((COLORREF)RGB(64,64,64)));
+		MoveRect(g, xPos, yPos);
+		pEnv->state->focusCurrent = NULL;
+
+		ListAddEnd(pEnv->renderList,g);
+
+		RedrawScreen(FALSE);
+	}	
+}
+
+
 void clientProc(HDC hdc, PGFXRECT winRect)
 {
     RECT target;
@@ -272,6 +319,14 @@ BOOL OnClick(int xPos, int yPos)
 	}
 
 	PGFXRECT highhit = GetSelectedRect(pguiEnv->renderList,xPos,yPos,FX_ATTR_VISIBLE);
+
+	pguiEnv->state->isNonClient = FALSE;
+	if(highhit && !PointInRect(highhit->clientRect,xPos,yPos))
+	{	
+		pguiEnv->state->isNonClient = TRUE;	
+		OutputDebugStringA("NON-CLIENT SET...\n");
+	}
+
 	if(highhit!=NULL && pguiEnv->state->focusCurrent!=highhit)
 	{
 		OutputDebugStringA("OnClick::GetSelectedRect...\n");
@@ -288,6 +343,7 @@ BOOL OnClick(int xPos, int yPos)
 		highhit->z           = NextDepth();
 		highhit->attr|=FX_ATTR_INVALID;
 		
+
 		PFXNODE t = ListRemove(pguiEnv->renderList,highhit);
 		ListAddEnd(pguiEnv->renderList,highhit);
 		DeallocNode(t);
@@ -509,23 +565,31 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
 					//FrameRect(hdc,&dragRect,hBack);
 					DrawFocusRect(hdc,&dragRect);
-					
-
-
 					//HBRUSH hBrush = CreateHatchBrush(HS_HORIZONTAL,RGB(200,200,200));	
-
+					/*
 					target.top = yPos;
 					target.left = xPos;
 					target.bottom = yPos + 100;
 					target.right = xPos + 100;
+					*/
+					target.top    = yPos;
+					target.left   = xPos;
+					target.bottom = target.top  + pguiEnv->state->focusCurrent->height;
+					target.right  = target.left + pguiEnv->state->focusCurrent->width;
 					
 					//FrameRect(hdc,&target,hBrush);
 					DrawFocusRect(hdc,&target);
-
+					/*
 					dragRect.top = yPos;
 					dragRect.left = xPos;
 					dragRect.bottom = yPos + 100;
 					dragRect.right = xPos + 100;
+					*/
+					dragRect.top    = yPos;
+					dragRect.left   = xPos;
+					dragRect.bottom = target.top  + pguiEnv->state->focusCurrent->height;
+					dragRect.right  = target.left + pguiEnv->state->focusCurrent->width;
+
 
 					ReleaseDC(chwnd, hdc);
 				}				
@@ -592,6 +656,29 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 				{
 					RedrawScreen(FALSE);
 				}
+				
+				if(pguiEnv->state->isNonClient)
+				{
+					OutputDebugStringA("OnClick NON-CLIENT CLICK");
+					DragStart(pguiEnv,xPos,yPos);
+
+					dragRect.top    = pguiEnv->state->focusCurrent->y;
+					dragRect.left   = pguiEnv->state->focusCurrent->x;
+					dragRect.bottom = dragRect.top  + pguiEnv->state->focusCurrent->height;
+					dragRect.right  = dragRect.left + pguiEnv->state->focusCurrent->width;
+
+					HDC hdc =  GetDC(hwnd);
+					if(hdc)
+					{
+						//HBRUSH hBrush = CreateHatchBrush(HS_HORIZONTAL,RGB(200,200,200));	
+					
+						//FrameRect(hdc,&dragRect,hBrush);
+						DrawFocusRect(hdc,&dragRect);
+
+						ReleaseDC(chwnd, hdc);
+					}											
+				}
+
 			}
 		}
 		break;
@@ -600,16 +687,24 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 			int xPos = GET_X_LPARAM(lParam); 
 			int yPos = GET_Y_LPARAM(lParam);
 			if(IsDragging(pguiEnv))
-			{
+			{	
+				/*
 				HDC hdc =  GetDC(hwnd);
 				if(hdc)
 				{ 
-					//HBRUSH hBack = CreateSolidBrush(RGB(64,64,64));	
+					RECT target;
 
-					//FrameRect(hdc,&dragRect,hBack);	
 					DrawFocusRect(hdc,&dragRect);
+					
+					//FillRect(hdc, ToWinRECT(&target,pguiEnv->state->focusCurrent), CreateSolidBrush((COLORREF)RGB(64,64,64)));
+					MoveRect(pguiEnv->state->focusCurrent, xPos, yPos);
+					pguiEnv->state->focusCurrent = NULL;
+					RedrawScreen(FALSE);
 				}
+				*/
 				DragEnd(pguiEnv, xPos, yPos);
+				MoveFXWindow(pguiEnv, pguiEnv->state->focusCurrent, xPos, yPos);
+				//DragEnd(pguiEnv, xPos, yPos);
 			}
 		}
 		break;
