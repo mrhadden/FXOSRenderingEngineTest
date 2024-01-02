@@ -12,7 +12,9 @@
 #include "List.h"
 
 #include "FXWindow.h"
-
+#include "Around.h"
+#include "Shinobi.h"
+#include "Envious.h"
 
 RECT dragRect;
 
@@ -28,6 +30,38 @@ ApplyWindowAttr fApplyChrome[] = {AddCloseGadget,AddMinGadget,AddTitleGadget,NUL
 
 void RedrawScreen(BOOL bBackground);
 
+
+char letterA[] = 
+{
+0,0,0,1,1,0,0,0,
+0,0,1,0,0,1,0,0,
+0,1,0,0,0,0,1,0,
+0,1,0,0,0,0,1,0,
+0,1,1,1,1,1,1,0,
+0,1,0,0,0,0,1,0,
+0,1,0,0,0,0,1,0,
+0,1,0,0,0,0,1,0,
+};
+
+
+char letterBinAX[] = 
+{
+0x18,
+0x24,//0,0,1,0,0,1,0,0,
+0x42,//0,1,0,0,0,0,1,0,
+0x42,//0,1,0,0,0,0,1,0,
+0x7E,//0,1,1,1,1,1,1,0,
+0x42,//0,1,0,0,0,0,1,0,
+0x42,//0,1,0,0,0,0,1,0,
+0x42,//0,1,0,0,0,0,1,0,
+};
+char letterBinA[] = 
+{
+0x3e, 0x63, 0x41, 0x41, 0x7f, 0x41, 0x41, 0x41,
+};
+
+
+
 void MoveFXWindow(PFXUIENV pEnv, PGFXRECT p ,int xPos, int yPos)
 {
 	HDC hdc =  GetDC(chwnd);
@@ -38,12 +72,12 @@ void MoveFXWindow(PFXUIENV pEnv, PGFXRECT p ,int xPos, int yPos)
 		DrawFocusRect(hdc,&dragRect);
 		
 		PFXNODE t = ListRemove(pEnv->renderList,p);
-		sprintf(debugOut,"ListRemove %p\n",t);	
-		OutputDebugStringA(debugOut);
+		//sprintf(debugOut,"ListRemove %p\n",t);	
+		//OutputDebugStringA(debugOut);
 
 		PGFXRECT g = (PGFXRECT)(t->data);
-		sprintf(debugOut,"RECT %s\n",g->name);	
-		OutputDebugStringA(debugOut);
+		//sprintf(debugOut,"RECT %s\n",g->name);	
+		//OutputDebugStringA(debugOut);
 
 		PFXNODELIST overlaps = GetOverLappedRect(g,pEnv->renderList);
 		if(overlaps!=NULL)
@@ -98,6 +132,8 @@ void clientProc(HDC hdc, PGFXRECT winRect)
 
 }
 
+unsigned char FONTDATA[768];
+
 FXWndProc fWndProcs[] = 
 {
 	clientProc,
@@ -123,7 +159,21 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
     RegisterClass(&wc);
 
     // Create the window.
-	//OutputDebugStringA("CreateWindowEx...\n");
+
+	/*
+	FILE* ff = fopen("Envious2.fnt","w");
+	if(ff)
+	{
+		fwrite(&FONT_ENVIOUS_SERIF_BITMAP,768,1,ff);
+		fclose(ff);
+	}
+	*/
+	FILE* ff = fopen("Envious2.fnt","r");
+	if(ff)
+	{
+		fread(&FONTDATA,768,1,ff);
+		fclose(ff);
+	}
 
 	pguiEnv = InitUIEnvironment();
 
@@ -205,7 +255,6 @@ PGFXRECT AddRect(const char* name, int xPos, int yPos, int width, int height)
 
 	//VisitList(renderList,Unhighlight);
 	Unhighlight();
-
 
 	ListAddStart(pguiEnv->knownRects,r);
 	ListAddEnd(pguiEnv->renderList,r);
@@ -536,15 +585,72 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     case WM_PAINT:
         {
             PAINTSTRUCT ps;
- 
+			VisitList(pguiEnv->renderList,RedrawVisible);
+
             HDC hdc = BeginPaint(hwnd, &ps);
 			if(hdc)
 			{
 				FillRect(hdc, &ps.rcPaint, CreateSolidBrush((COLORREF)RGB(64,64,64)));
 				DrawRectangles(hdc, pguiEnv->renderList);	
 				
+				const char *message = "ABCDE - HELLO + abcd!\0";
+
+				int index = 0;
+				int c = 0;
+				//for(int c=0;c<90;c+=9)
+				while(*message)
+				{
+
+					//sprintf(debugOut,"FONT: %c %d %d\n",*message,(int)*message,(int)(*message-32));
+					//OutputDebugStringA(debugOut);
+					const unsigned char* fchar = &FONT_ENVIOUS_SERIF_BITMAP[(*message - 32)*8];
+
+					for(int y=0;y<8;y++)
+					{
+						for(int x=0;x<8;x++)
+						{
+							if(((fchar[y]) >> x) & 1)
+								SetPixel(hdc,10 + c + (8 - x),10 + y,(COLORREF)RGB(255,255,255));
+						}
+					}
+
+					c+=9;
+					message++;
+				}
+
+				/*
+				message = "ABCDE - HELLO + abcd!\0";
+				index = 0;
+				c = 0;
+				//for(int c=0;c<90;c+=9)
+				while(*message)
+				{
+
+					//sprintf(debugOut,"FONT: %c %d %d\n",*message,(int)*message,(int)(*message-32));
+					//OutputDebugStringA(debugOut);
+					const unsigned char* fchar = &FONTDATA[(*message - 32)*8];
+
+					for(int y=0;y<8;y++)
+					{
+						for(int x=0;x<8;x++)
+						{
+							if(((fchar[y]) >> x) & 1)
+								SetPixel(hdc,10 + c + (8 - x),20 + y,(COLORREF)RGB(255,255,255));
+						}
+					}
+
+					c+=9;
+					message++;
+				}
+				*/
+
+				FXTextOut(hdc,"ABCDE - HELLO + abcde!\0",10,20,(const unsigned char*)FONTDATA,(COLORREF)RGB(255,255,255));
+				FXTextOutEx(hdc,"ABCDE - HELLO + abcde!\0",10,30,(const unsigned char*)FONTDATA,2,(COLORREF)RGB(255,0,0));
+
 				EndPaint(hwnd, &ps);
 			}
+
+			OutputDebugStringA("WM_PAINT!\n");
         }
         return 0;
 	case WM_MOUSEMOVE:

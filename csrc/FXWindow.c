@@ -290,6 +290,53 @@ BOOL MoveRect(PGFXRECT r, int xPos, int yPos )
     return TRUE;
 }
 
+
+void FXTextOut(HDC hdc,const char* message, int dx, int dy,const unsigned char* font, COLORREF color)
+{
+    int c = 0;
+    while(*message)
+    {
+        const unsigned char* fchar = &font[(*message - 32)*8];
+
+        for(int y=0;y<8;y++)
+        {
+            for(int x=0;x<8;x++)
+            {
+                if(((fchar[y]) >> x) & 1)
+                    SetPixel(hdc,dx + c + (8 - x),dy + y,color);
+            }
+        }
+        c+=9;
+        message++;
+    }
+}
+
+void FXTextOutEx(HDC hdc,const char* message, int dx, int dy,const unsigned char* font, int scale, COLORREF color)
+{
+    int c = 0;
+    while(*message)
+    {
+        const unsigned char* fchar = &font[(*message - 32)*8];
+
+        for(int y=0;y<8;y++)
+        {
+            for(int x=0;x<8;x++)
+            {
+                if(((fchar[y]) >> x) & 1)
+                {
+                    for(int s=0;s<scale;s++)
+                    {
+                        SetPixel(hdc,dx + c + (8 - x),dy + y,color);
+                        
+                    }
+                }
+            }
+        }
+        c+=(scale * 9);
+        message++;
+    }
+}
+
 /*
 
 
