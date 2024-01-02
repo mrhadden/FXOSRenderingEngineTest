@@ -7,6 +7,8 @@
 #include "GFXRECTP.h"
 #include "List.h"
 
+#include "Envious.h"
+
 typedef struct _fx_metrics
 {
     int metric;
@@ -79,7 +81,7 @@ BOOL IsDblClick(PFXUIENV pguiEnv);
 BOOL MoveRect(PGFXRECT r, int xPos, int yPos);
 
 void FXTextOut(HDC hdc, const char* message, int dx, int dy,const unsigned char* font, COLORREF color);
-void FXTextOutEx(HDC hdc, const char* message, int dx, int dy,const unsigned char* font, int scale, COLORREF color);
+void FXTextOutEx(HDC hdc, const char* message, int dx, int dy,const unsigned char* font, int scale, COLORREF color, COLORREF bkcolor);
 
 int gettimeofday(struct timeval * tp, struct timezone * tzp);
 

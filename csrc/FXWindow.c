@@ -68,7 +68,8 @@ void AddTitleGadget(HDC hdc, PGFXRECT winRect)
     RECT target;
 
     ToWinRECT(&target, winRect);
-
+	
+	/*
     SetTextColor(hdc,((COLORREF)RGB(255,255,255)));
     SetBkColor(hdc,((COLORREF)winRect->renderColor));
 
@@ -77,6 +78,17 @@ void AddTitleGadget(HDC hdc, PGFXRECT winRect)
                 target.top + FXM_BORDERSIZE,
                 winRect->name,
                 winRect->szname);	
+				*/
+	FXTextOutEx(hdc,
+	          winRect->name,
+	          target.left + 1 + FXM_BORDERSIZE,
+			  target.top  + FXM_BORDERSIZE + (FXM_TITLEHEIGHT/2) - 4,
+			  (const unsigned char*)FONT_ENVIOUS_SERIF_BITMAP,
+			  1,             			  
+			  (COLORREF)RGB(255,255,255),
+			  winRect->renderColor
+			  );				
+				
 }
 
 
@@ -311,7 +323,10 @@ void FXTextOut(HDC hdc,const char* message, int dx, int dy,const unsigned char* 
     }
 }
 
-void FXTextOutEx(HDC hdc,const char* message, int px, int py,const unsigned char* font, int scale, COLORREF color)
+void FXTextOutEx(HDC hdc,const char* message, int px, int py,
+                 const unsigned char* font, int scale, 
+				 COLORREF color,
+				 COLORREF bkcolor)
 {
 	int fsize = 8;
     int c     = 0;
@@ -319,7 +334,8 @@ void FXTextOutEx(HDC hdc,const char* message, int px, int py,const unsigned char
 	//int dx = 0;
 	int dy = 0;
 
-	HPEN hb = CreatePen(PS_SOLID, 1,color);
+	HPEN hb  = CreatePen(PS_SOLID, 1,color);
+	HPEN hbb = CreatePen(PS_SOLID, 1,bkcolor);
 	HGDIOBJ hbo = SelectObject(hdc,(HGDIOBJ)hb);
 
 	
@@ -338,8 +354,15 @@ void FXTextOutEx(HDC hdc,const char* message, int px, int py,const unsigned char
 				{
 					if(((row) >> x) & 1)
 					{
+						SelectObject(hdc,(HGDIOBJ)hb);
 						MoveToEx(hdc, px + c + ((fsize * scale) - (x * scale)),py + dy, (LPPOINT) NULL); 
 						LineTo(hdc, px + c + ((fsize * scale) - (x * scale - scale)),py + dy); 
+					}
+					else
+					{
+						SelectObject(hdc,(HGDIOBJ)hbb);
+						MoveToEx(hdc, px + c + ((fsize * scale) - (x * scale)),py + dy, (LPPOINT) NULL); 
+						LineTo(hdc, px + c + ((fsize * scale) - (x * scale - scale)),py + dy);					
 					}
 				}
 				dy++;

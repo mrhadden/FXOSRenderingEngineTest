@@ -22,7 +22,7 @@ PGFXRECT AllocRectEx(const char* name, int x,int y,int width,int height,long z,i
 		if(!name)
 		{
 			char* nname = (char*)malloc(64);
-			sprintf(nname,"P:%p",(void*)p);
+			sprintf(nname," P:%p ",(void*)p);
 			name = (const char*)nname;
 		}
 		

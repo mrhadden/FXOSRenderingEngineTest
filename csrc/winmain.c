@@ -14,7 +14,7 @@
 #include "FXWindow.h"
 #include "Around.h"
 #include "Shinobi.h"
-#include "Envious.h"
+
 
 RECT dragRect;
 
