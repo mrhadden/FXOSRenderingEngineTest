@@ -25,6 +25,7 @@ PFXUIENV pguiEnv = NULL;
 HWND chwnd = NULL;
 
 char debugOut[1024];
+unsigned char FONTDATA[768];
 
 ApplyWindowAttr fApplyChrome[] = {AddCloseGadget,AddMinGadget,AddTitleGadget,NULL};
 
@@ -111,19 +112,24 @@ void clientProc(HDC hdc, PGFXRECT winRect)
 {
     RECT target;
 
-	const char* caption = "Client Text";
+	const char* caption = "Client Text\0";
 
     ToWinRECT(&target, winRect);
-
+	/*
     SetTextColor(hdc,((COLORREF)RGB(0,0,0)));
     SetBkColor(hdc,((COLORREF)RGB(255,255,255)));
-
     TextOutA(hdc,
              target.left + 1 + FXM_BORDERSIZE,
              target.top  + 1 + FXM_BORDERSIZE,
              caption,
              strlen(caption));	
-
+	*/
+	FXTextOut(hdc,caption,
+	          target.left + 1 + FXM_BORDERSIZE,
+			  target.top  + 1 + FXM_BORDERSIZE,
+			  (const unsigned char*)FONTDATA, 
+			  (COLORREF)RGB(0,0,0));
+			  
 	for(int x=0;x<200;x++)
 		SetPixel(hdc,
 				 target.left + 1 + FXM_BORDERSIZE + x,
@@ -132,7 +138,7 @@ void clientProc(HDC hdc, PGFXRECT winRect)
 
 }
 
-unsigned char FONTDATA[768];
+
 
 FXWndProc fWndProcs[] = 
 {
@@ -593,6 +599,7 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 				FillRect(hdc, &ps.rcPaint, CreateSolidBrush((COLORREF)RGB(64,64,64)));
 				DrawRectangles(hdc, pguiEnv->renderList);	
 				
+				/*
 				const char *message = "ABCDE - HELLO + abcd!\0";
 
 				int index = 0;
@@ -617,7 +624,8 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 					c+=9;
 					message++;
 				}
-
+				*/
+				
 				/*
 				message = "ABCDE - HELLO + abcd!\0";
 				index = 0;
@@ -644,8 +652,15 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 				}
 				*/
 
-				FXTextOut(hdc,"ABCDE - HELLO + abcde!\0",10,20,(const unsigned char*)FONTDATA,(COLORREF)RGB(255,255,255));
-				FXTextOutEx(hdc,"ABCDE - HELLO + abcde!\0",10,30,(const unsigned char*)FONTDATA,2,(COLORREF)RGB(255,0,0));
+				//FXTextOut(hdc,"ABCDE - HELLO + abcde!\0",10,20,(const unsigned char*)FONTDATA,(COLORREF)RGB(255,255,255));
+				
+				//FXTextOutEx(hdc,"ABCDE - HELLO + abcde!\0",0,30,(const unsigned char*)FONTDATA,2,(COLORREF)RGB(255,0,0));
+				
+				//FXTextOutEx(hdc,"ABCDE - HELLO + abcde!\0",0,100,(const unsigned char*)FONTDATA,4,(COLORREF)RGB(255,0,0));
+				
+				//FXTextOutEx(hdc,"ABCDE - HELLO + abcde!\0",0,200,(const unsigned char*)FONTDATA,50,(COLORREF)RGB(0,255,0));
+				
+				
 
 				EndPaint(hwnd, &ps);
 			}

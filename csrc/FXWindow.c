@@ -311,30 +311,46 @@ void FXTextOut(HDC hdc,const char* message, int dx, int dy,const unsigned char* 
     }
 }
 
-void FXTextOutEx(HDC hdc,const char* message, int dx, int dy,const unsigned char* font, int scale, COLORREF color)
+void FXTextOutEx(HDC hdc,const char* message, int px, int py,const unsigned char* font, int scale, COLORREF color)
 {
-    int c = 0;
+	int fsize = 8;
+    int c     = 0;
+	
+	//int dx = 0;
+	int dy = 0;
+
+	HPEN hb = CreatePen(PS_SOLID, 1,color);
+	HGDIOBJ hbo = SelectObject(hdc,(HGDIOBJ)hb);
+
+	
     while(*message)
     {
-        const unsigned char* fchar = &font[(*message - 32)*8];
+		dy = 0;
+        const unsigned char* fchar = &font[(*message - 32)*fsize];
 
-        for(int y=0;y<8;y++)
+
+        for(int y=0;y<fsize;y++)
         {
-            for(int x=0;x<8;x++)
-            {
-                if(((fchar[y]) >> x) & 1)
-                {
-                    for(int s=0;s<scale;s++)
-                    {
-                        SetPixel(hdc,dx + c + (8 - x),dy + y,color);
-                        
-                    }
-                }
-            }
+			int row = fchar[y];			
+			for(int sy=0;sy<scale;sy++)
+			{
+				for(int x=0;x<fsize;x++)
+				{
+					if(((row) >> x) & 1)
+					{
+						MoveToEx(hdc, px + c + ((fsize * scale) - (x * scale)),py + dy, (LPPOINT) NULL); 
+						LineTo(hdc, px + c + ((fsize * scale) - (x * scale - scale)),py + dy); 
+					}
+				}
+				dy++;
+			}			
         }
-        c+=(scale * 9);
+        c+=(fsize * scale);
         message++;
     }
+	
+	SelectObject(hdc,hbo);
+	DeleteObject(hb);
 }
 
 /*
