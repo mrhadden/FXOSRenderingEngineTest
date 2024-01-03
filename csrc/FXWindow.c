@@ -52,10 +52,11 @@ void AddMinGadget(HDC hdc, PGFXRECT winRect)
     //OutputDebugStringA("AddCloseGadget...\n");
     RECT target;
 
-    for(int i = 0;i<3;i++)
+    for(int i = 0;i<4;i++)
     {
-        target.left   = winRect->x + FXM_BORDERSIZE + 1;
-        target.top    = winRect->y + (FXM_BORDERSIZE * 2) + (i*4);
+        target.left   = winRect->x + FXM_BORDERSIZE ;
+        //target.top    = winRect->y + (FXM_BORDERSIZE * 2) + (i*4);
+		target.top    = winRect->y + FXM_BORDERSIZE + (i*4);
         target.right  = winRect->x + winRect->width - (FXM_BORDERSIZE * 2) - 10 - 2;
         target.bottom = target.top + 4 ;
         
@@ -66,6 +67,9 @@ void AddMinGadget(HDC hdc, PGFXRECT winRect)
 void AddTitleGadget(HDC hdc, PGFXRECT winRect)
 {
     RECT target;
+	RECT title;
+
+	int sFont = 8;
 
     ToWinRECT(&target, winRect);
 	
@@ -79,6 +83,14 @@ void AddTitleGadget(HDC hdc, PGFXRECT winRect)
                 winRect->name,
                 winRect->szname);	
 				*/
+	title.left   = target.left + FXM_BORDERSIZE;
+	title.top    = target.top  + FXM_BORDERSIZE;
+	title.right  = title.left  + (sFont * strlen(winRect->name)) + FXM_BORDERSIZE;
+	title.bottom = title.top   + FXM_TITLEHEIGHT - FXM_BORDERSIZE;
+	
+	//FillRect(hdc,&title, CreateSolidBrush((COLORREF)RGB(255,255,255)));			
+	FillRect(hdc,&title, CreateSolidBrush(winRect->renderColor));			
+				
 	FXTextOutEx(hdc,
 	          winRect->name,
 	          target.left + 1 + FXM_BORDERSIZE,
@@ -86,7 +98,7 @@ void AddTitleGadget(HDC hdc, PGFXRECT winRect)
 			  (const unsigned char*)FONT_ENVIOUS_SERIF_BITMAP,
 			  1,             			  
 			  (COLORREF)RGB(255,255,255),
-			  winRect->renderColor
+			  winRect->renderColor			  
 			  );				
 				
 }

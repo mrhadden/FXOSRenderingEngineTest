@@ -41,7 +41,7 @@ typedef FXUIENV* PFXUIENV;
 
 #define FXM_BORDERSIZE      2
 #define FXM_TRIMWIDTH       4
-#define FXM_TITLEHEIGHT     16
+#define FXM_TITLEHEIGHT     18
 #define FXM_TRIMHEIGHT      16
 
 typedef void (*ApplyWindowAttr)(HDC hdc,PGFXRECT winRect);
