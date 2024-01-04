@@ -808,27 +808,9 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 				
 				if(pguiEnv->state->isNonClient)
 				{
-
-					sprintf(debugOut,"NON-CLIENT CLICK x: %d y: %d \n",xPos,yPos);
-					OutputDebugStringA(debugOut);
-					
-					/*
-
-					OutputDebugStringA("OnClick NON-CLIENT CLICK");
-
-					sprintf(debugOut,"NON-CLIENT CLICK x: %d y: %d\n", xPos, yPos);
-					OutputDebugStringA(debugOut);
-
-					sprintf(debugOut,"NON-CLIENT CLICK x: %d y: %d w: %d h: %d \n", 
-					pguiEnv->state->focusCurrent->nonclientRect.x,
-					pguiEnv->state->focusCurrent->nonclientRect.y,
-					pguiEnv->state->focusCurrent->nonclientRect.width,
-					pguiEnv->state->focusCurrent->nonclientRect.height);
-					OutputDebugStringA(debugOut);
-					*/
 					if(PointInRect((PGFXRECT)pguiEnv->state->focusCurrent->nonclientList->head->data,xPos,yPos ))
 					{
-						OutputDebugStringA("OnClick NON-CLIENT CLOSE");
+						//OutputDebugStringA("OnClick NON-CLIENT CLOSE");
 						if(OnCtlClick(xPos,yPos))
 						{
 							RedrawScreen(FALSE);
@@ -846,15 +828,10 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 					HDC hdc =  GetDC(hwnd);
 					if(hdc)
 					{
-						//HBRUSH hBrush = CreateHatchBrush(HS_HORIZONTAL,RGB(200,200,200));	
-					
-						//FrameRect(hdc,&dragRect,hBrush);
 						DrawFocusRect(hdc,&dragRect);
-
 						ReleaseDC(chwnd, hdc);
 					}											
 				}
-
 			}
 		}
 		break;
@@ -864,27 +841,12 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 			int yPos = GET_Y_LPARAM(lParam);
 			if(IsDragging(pguiEnv))
 			{	
-				/*
-				HDC hdc =  GetDC(hwnd);
-				if(hdc)
-				{ 
-					RECT target;
-
-					DrawFocusRect(hdc,&dragRect);
-					
-					//FillRect(hdc, ToWinRECT(&target,pguiEnv->state->focusCurrent), CreateSolidBrush((COLORREF)RGB(64,64,64)));
-					MoveRect(pguiEnv->state->focusCurrent, xPos, yPos);
-					pguiEnv->state->focusCurrent = NULL;
-					RedrawScreen(FALSE);
-				}
-				*/
 				yPos = yPos - pguiEnv->state->dragOffset.y;
 				xPos = xPos - pguiEnv->state->dragOffset.x;				
 		
 				DragEnd(pguiEnv, xPos, yPos);
 
 				MoveFXWindow(pguiEnv, pguiEnv->state->focusCurrent, xPos, yPos);
-				//DragEnd(pguiEnv, xPos, yPos);
 			}
 		}
 		break;
