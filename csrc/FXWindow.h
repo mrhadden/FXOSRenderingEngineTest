@@ -44,15 +44,15 @@ typedef FXUIENV* PFXUIENV;
 #define FXM_TITLEHEIGHT     18
 #define FXM_TRIMHEIGHT      16
 
-typedef void (*ApplyWindowAttr)(HDC hdc,PGFXRECT winRect);
+typedef PGFXRECT (*ApplyWindowAttr)(HDC hdc,PGFXRECT winRect);
 
 typedef void (*FXWndProc)(HDC hdc,PGFXRECT winRect);
 
 RECT* ToWinRECT(RECT* rect, GFXRECT* grect);
 
-void AddCloseGadget(HDC hdc,PGFXRECT winRect);
-void AddMinGadget(HDC hdc,PGFXRECT winRect);
-void AddTitleGadget(HDC hdc,PGFXRECT winRect);
+PGFXRECT AddCloseGadget(HDC hdc,PGFXRECT winRect);
+PGFXRECT AddMinGadget(HDC hdc,PGFXRECT winRect);
+PGFXRECT AddTitleGadget(HDC hdc,PGFXRECT winRect);
 
 typedef struct _fx_window
 {

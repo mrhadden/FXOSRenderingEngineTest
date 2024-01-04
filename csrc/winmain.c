@@ -781,6 +781,22 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 				if(pguiEnv->state->isNonClient)
 				{
 					OutputDebugStringA("OnClick NON-CLIENT CLICK");
+
+					sprintf(debugOut,"NON-CLIENT CLICK x: %d y: %d\n", xPos, yPos);
+					OutputDebugStringA(debugOut);
+					sprintf(debugOut,"NON-CLIENT CLICK x: %d y: %d w: %d h: %d \n", 
+					pguiEnv->state->focusCurrent->nonclientRect.x,
+					pguiEnv->state->focusCurrent->nonclientRect.y,
+					pguiEnv->state->focusCurrent->nonclientRect.width,
+					pguiEnv->state->focusCurrent->nonclientRect.height);
+					OutputDebugStringA(debugOut);
+
+					if(PointInRect((PGFXRECT)&pguiEnv->state->focusCurrent->nonclientRect,xPos,yPos ))
+					{
+						OutputDebugStringA("OnClick NON-CLIENT CLOSE");
+						return FALSE;
+					}
+
 					DragStart(pguiEnv,xPos,yPos);
 
 					dragRect.top    = pguiEnv->state->focusCurrent->y;

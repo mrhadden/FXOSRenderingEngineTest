@@ -2,6 +2,10 @@
 #include "FXWindow.h"
 
 
+HBRUSH CONST_WHITE = CreateSolidBrush(RGB(255,255,255));
+HBRUSH CONST_BLACK = CreateSolidBrush(RGB(0,0,0));
+HBRUSH CONST_DESK  = CreateSolidBrush(RGB(64,64,64));
+
 PFXUIENV InitUIEnvironment()
 {
     PFXUIENV env = (PFXUIENV)malloc(sizeof(FXUIENV));
@@ -34,20 +38,45 @@ RECT* ToWinRECT(RECT* rect, GFXRECT* grect)
 	return rect;
 }
 
-void AddCloseGadget(HDC hdc,PGFXRECT winRect)
+PGFXRECT AddCloseGadget(HDC hdc,PGFXRECT winRect)
 {
     //OutputDebugStringA("AddCloseGadget...\n");
     RECT target;
+    char debugOut[256];
 
     target.left   = winRect->x + winRect->width - (FXM_BORDERSIZE * 2) - 10;
-    target.top    = winRect->y + FXM_BORDERSIZE + (FXM_TITLEHEIGHT / 2) - 5;
+    target.top    = winRect->y + FXM_BORDERSIZE + (FXM_TITLEHEIGHT / 2) - 6;
     target.right  = target.left + 10;
-    target.bottom = target.top + 10;
+    target.bottom = target.top  + 10;
     
-    FrameRect(hdc, &target ,CreateSolidBrush(RGB(255,255,255)));
+    winRect->nonclientRect.x = target.left;
+    winRect->nonclientRect.y = target.top;
+    winRect->nonclientRect.width = target.right - target.left;
+    winRect->nonclientRect.height = target.bottom - target.top;
+
+    sprintf(debugOut,"NON-CLIENT CLICK x: %d y: %d w: %d h: %d \n", 
+    winRect->nonclientRect.x,
+    winRect->nonclientRect.y,
+    winRect->nonclientRect.width,
+    winRect->nonclientRect.height);
+    OutputDebugStringA(debugOut);
+
+    //FrameRect(hdc, &target, CreateSolidBrush(RGB(255,255,255)));
+    FrameRect(hdc, &target, CONST_WHITE);
+
+    target.left   = target.left + 2;
+    target.top    = target.top + 2;
+    target.right  = target.right - 2;
+    target.bottom = target.bottom - 2;
+    
+    //FrameRect(hdc, &target, CreateSolidBrush(RGB(255,255,255)));
+    FrameRect(hdc, &target, CONST_WHITE);
+
+
+    return NULL;
 }
 
-void AddMinGadget(HDC hdc, PGFXRECT winRect)
+PGFXRECT AddMinGadget(HDC hdc, PGFXRECT winRect)
 {
     //OutputDebugStringA("AddCloseGadget...\n");
     RECT target;
@@ -60,11 +89,14 @@ void AddMinGadget(HDC hdc, PGFXRECT winRect)
         target.right  = winRect->x + winRect->width - (FXM_BORDERSIZE * 2) - 10 - 2;
         target.bottom = target.top + 4 ;
         
-        FrameRect(hdc, &target ,CreateSolidBrush(RGB(255,255,255)));
+        //FrameRect(hdc, &target,CreateSolidBrush(RGB(255,255,255)));
+        FrameRect(hdc, &target, CONST_WHITE);
     }
+
+    return NULL;
 }
 
-void AddTitleGadget(HDC hdc, PGFXRECT winRect)
+PGFXRECT AddTitleGadget(HDC hdc, PGFXRECT winRect)
 {
     RECT target;
 	RECT title;
@@ -99,8 +131,9 @@ void AddTitleGadget(HDC hdc, PGFXRECT winRect)
 			  1,             			  
 			  (COLORREF)RGB(255,255,255),
 			  winRect->renderColor			  
-			  );				
-				
+			  );	
+
+	return NULL;			
 }
 
 

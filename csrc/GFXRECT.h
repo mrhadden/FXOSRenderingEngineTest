@@ -12,6 +12,15 @@
 #define FX_ATTR_ERASE        0x2000
 #define FX_ATTR_DELETE       0x1000
 
+typedef struct _fx_rect_region
+{
+	int 	x;
+	int 	y;
+	int 	width;
+	int 	height;
+} GRECT;
+typedef GRECT* PGRECT;
+
 typedef struct _fx_rect
 {
 	const char* name;
@@ -23,12 +32,11 @@ typedef struct _fx_rect
 	int 	color;
 	int 	renderColor;
 	int     attr;
-
 	int   	orgX = 0;
 	int   	orgY = 0;
 	int     szname = 0;
-
-	struct _fx_rect* 	clientRect;
+	GRECT   nonclientRect;
+	struct _fx_rect* clientRect;
 	void* wndProc;
 } GFXRECT;
 typedef GFXRECT* PGFXRECT;
