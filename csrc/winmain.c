@@ -12,8 +12,8 @@
 #include "List.h"
 
 #include "FXWindow.h"
-#include "Around.h"
-#include "Shinobi.h"
+
+#include "pgm.h"
 
 
 RECT dragRect;
@@ -30,37 +30,6 @@ unsigned char FONTDATA[768];
 ApplyWindowAttr fApplyChrome[] = {AddCloseGadget,AddTitleBarGadget,AddTitleGadget,NULL};
 
 void RedrawScreen(BOOL bBackground);
-
-
-char letterA[] = 
-{
-0,0,0,1,1,0,0,0,
-0,0,1,0,0,1,0,0,
-0,1,0,0,0,0,1,0,
-0,1,0,0,0,0,1,0,
-0,1,1,1,1,1,1,0,
-0,1,0,0,0,0,1,0,
-0,1,0,0,0,0,1,0,
-0,1,0,0,0,0,1,0,
-};
-
-
-char letterBinAX[] = 
-{
-0x18,
-0x24,//0,0,1,0,0,1,0,0,
-0x42,//0,1,0,0,0,0,1,0,
-0x42,//0,1,0,0,0,0,1,0,
-0x7E,//0,1,1,1,1,1,1,0,
-0x42,//0,1,0,0,0,0,1,0,
-0x42,//0,1,0,0,0,0,1,0,
-0x42,//0,1,0,0,0,0,1,0,
-};
-char letterBinA[] = 
-{
-0x3e, 0x63, 0x41, 0x41, 0x7f, 0x41, 0x41, 0x41,
-};
-
 
 
 void MoveFXWindow(PFXUIENV pEnv, PGFXRECT p ,int xPos, int yPos)
@@ -107,39 +76,6 @@ void MoveFXWindow(PFXUIENV pEnv, PGFXRECT p ,int xPos, int yPos)
 	}	
 }
 
-
-void clientProc(HDC hdc, PGFXRECT winRect)
-{
-    RECT target;
-
-	const char* caption = "Client Text\0";
-
-    ToWinRECT(&target, winRect);
-	/*
-    SetTextColor(hdc,((COLORREF)RGB(0,0,0)));
-    SetBkColor(hdc,((COLORREF)RGB(255,255,255)));
-    TextOutA(hdc,
-             target.left + 1 + FXM_BORDERSIZE,
-             target.top  + 1 + FXM_BORDERSIZE,
-             caption,
-             strlen(caption));	
-	*/
-	FXTextOut(hdc,caption,
-	          target.left + 1 + FXM_BORDERSIZE,
-			  target.top  + 1 + FXM_BORDERSIZE,
-			  (const unsigned char*)FONTDATA, 
-			  (COLORREF)RGB(0,0,0));
-			  
-	for(int x=0;x<200;x++)
-		SetPixel(hdc,
-				 target.left + 1 + FXM_BORDERSIZE + x,
-				 target.top  + 1 + FXM_BORDERSIZE + 30,
-				 ((COLORREF)RGB(255,0,0)));
-
-}
-
-
-
 FXWndProc fWndProcs[] = 
 {
 	clientProc,
@@ -174,7 +110,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
 		fclose(ff);
 	}
 	*/
-	FILE* ff = fopen("Envious2.fnt","r");
+	FILE* ff = fopen("font/Envious.fnt","r");
 	if(ff)
 	{
 		fread(&FONTDATA,768,1,ff);
@@ -613,70 +549,6 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 			{
 				FillRect(hdc, &ps.rcPaint, CreateSolidBrush((COLORREF)RGB(64,64,64)));
 				DrawRectangles(hdc, pguiEnv->renderList);	
-				
-				/*
-				const char *message = "ABCDE - HELLO + abcd!\0";
-
-				int index = 0;
-				int c = 0;
-				//for(int c=0;c<90;c+=9)
-				while(*message)
-				{
-
-					//sprintf(debugOut,"FONT: %c %d %d\n",*message,(int)*message,(int)(*message-32));
-					//OutputDebugStringA(debugOut);
-					const unsigned char* fchar = &FONT_ENVIOUS_SERIF_BITMAP[(*message - 32)*8];
-
-					for(int y=0;y<8;y++)
-					{
-						for(int x=0;x<8;x++)
-						{
-							if(((fchar[y]) >> x) & 1)
-								SetPixel(hdc,10 + c + (8 - x),10 + y,(COLORREF)RGB(255,255,255));
-						}
-					}
-
-					c+=9;
-					message++;
-				}
-				*/
-				
-				/*
-				message = "ABCDE - HELLO + abcd!\0";
-				index = 0;
-				c = 0;
-				//for(int c=0;c<90;c+=9)
-				while(*message)
-				{
-
-					//sprintf(debugOut,"FONT: %c %d %d\n",*message,(int)*message,(int)(*message-32));
-					//OutputDebugStringA(debugOut);
-					const unsigned char* fchar = &FONTDATA[(*message - 32)*8];
-
-					for(int y=0;y<8;y++)
-					{
-						for(int x=0;x<8;x++)
-						{
-							if(((fchar[y]) >> x) & 1)
-								SetPixel(hdc,10 + c + (8 - x),20 + y,(COLORREF)RGB(255,255,255));
-						}
-					}
-
-					c+=9;
-					message++;
-				}
-				*/
-
-				//FXTextOut(hdc,"ABCDE - HELLO + abcde!\0",10,20,(const unsigned char*)FONTDATA,(COLORREF)RGB(255,255,255));
-				
-				//FXTextOutEx(hdc,"ABCDE - HELLO + abcde!\0",0,30,(const unsigned char*)FONTDATA,2,(COLORREF)RGB(255,0,0));
-				
-				//FXTextOutEx(hdc,"ABCDE - HELLO + abcde!\0",0,100,(const unsigned char*)FONTDATA,4,(COLORREF)RGB(255,0,0));
-				
-				//FXTextOutEx(hdc,"ABCDE - HELLO + abcde!\0",0,200,(const unsigned char*)FONTDATA,50,(COLORREF)RGB(0,255,0));
-				
-				
-
 				EndPaint(hwnd, &ps);
 			}
 

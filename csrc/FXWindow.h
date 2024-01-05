@@ -7,7 +7,7 @@
 #include "GFXRECTP.h"
 #include "List.h"
 
-#include "Envious.h"
+#include "Hourglass.h"
 
 typedef struct _fx_metrics
 {
@@ -40,6 +40,19 @@ typedef struct _fx_environment
 typedef FXUIENV* PFXUIENV;
 
 
+typedef struct _fx_resheader
+{
+	char sig[4];
+	char type[4];
+    char width;
+	char height;
+    char fontName[32];
+	char data;
+}HFXRESH;
+typedef HFXRESH* PHFXRESH;
+
+typedef const char* HFXFONT;
+
 #define FXM_BORDERSIZE      2
 #define FXM_TRIMWIDTH       4
 #define FXM_TITLEHEIGHT     18
@@ -47,7 +60,7 @@ typedef FXUIENV* PFXUIENV;
 
 typedef PGFXRECT (*ApplyWindowAttr)(HDC hdc,PGFXRECT winRect);
 
-typedef void (*FXWndProc)(HDC hdc,PGFXRECT winRect);
+typedef BOOL (*FXWndProc)(HDC hdc,PGFXRECT winRect);
 
 RECT* ToWinRECT(RECT* rect, GFXRECT* grect);
 PGFXRECT FromWinRECT(RECT* rect);
@@ -81,6 +94,12 @@ BOOL IsDblClick(PFXUIENV pguiEnv);
 //
 //
 BOOL MoveRect(PGFXRECT r, int xPos, int yPos);
+
+HFXFONT LoadFont(const char* fontName);
+const char* GetFontName(HFXFONT hFont);
+void  UnloadFont(HFXFONT hFont);
+void fxRenderText(HDC hdc,const char* message, int dx, int dy,HFXFONT hFont, COLORREF color);
+
 
 void FXTextOut(HDC hdc, const char* message, int dx, int dy,const unsigned char* font, COLORREF color);
 void FXTextOutEx(HDC hdc, const char* message, int dx, int dy,const unsigned char* font, int scale, COLORREF color, COLORREF bkcolor);

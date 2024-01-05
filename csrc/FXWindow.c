@@ -138,7 +138,7 @@ PGFXRECT AddTitleGadget(HDC hdc, PGFXRECT winRect)
 	          winRect->name,
 	          target.left + 1 + FXM_BORDERSIZE,
 			  target.top  + FXM_BORDERSIZE + (FXM_TITLEHEIGHT/2) - 4,
-			  (const unsigned char*)FONT_ENVIOUS_SERIF_BITMAP,
+			  (const unsigned char*)FONT_HOURGLASS_BITMAP,
 			  1,             			  
 			  (COLORREF)RGB(255,255,255),
 			  winRect->renderColor			  
@@ -362,6 +362,69 @@ BOOL MoveRect(PGFXRECT r, int xPos, int yPos )
     return TRUE;
 }
 
+HFXFONT LoadFont(const char* fontName)
+{
+	char debugOut[128];
+	char* hFont = (char*)malloc(768 + 42);
+	FILE* ff = fopen(fontName,"rb");
+	if(ff)
+	{
+		fread(hFont,768 + 42,1,ff);
+		fclose(ff);
+	}
+	
+	PHFXRESH hFontHeader = (PHFXRESH)(hFont);
+	
+	
+	
+	sprintf(debugOut,"LoadFont name:%.32s sig:%.4s type:%.4s w:%d h:%d \n", 
+    hFontHeader->fontName,
+	hFontHeader->sig,
+    hFontHeader->type,
+    hFontHeader->width,
+    hFontHeader->height);
+    OutputDebugStringA(debugOut);
+	
+	
+	return (HFXFONT)(hFontHeader);
+}
+
+const char* GetFontName(HFXFONT hFont)
+{
+	return ((PHFXRESH)hFont)->fontName;
+}
+
+void UnloadFont(HFONT hFont)
+{
+	if(hFont)
+		free((char*)hFont);
+}
+
+
+void fxRenderText(HDC hdc,const char* message, int dx, int dy,HFXFONT hFont, COLORREF color)
+{
+    int c = 0;
+	
+	PHFXRESH header = (PHFXRESH)hFont;
+	
+	const unsigned char* font = (const unsigned char*)&header->data;
+	
+    while(*message)
+    {
+        const unsigned char* fchar = &font[(*message - 32)*header->width];
+
+        for(int y=0;y<header->height;y++)
+        {
+            for(int x=0;x<header->width;x++)
+            {
+                if(((fchar[y]) >> x) & 1)
+                    SetPixel(hdc,dx + c + (header->width - x),dy + y,color);
+            }
+        }
+        c+=header->width;
+        message++;
+    }
+}
 
 void FXTextOut(HDC hdc,const char* message, int dx, int dy,const unsigned char* font, COLORREF color)
 {
