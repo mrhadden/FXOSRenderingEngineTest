@@ -38,6 +38,11 @@ RECT* ToWinRECT(RECT* rect, GFXRECT* grect)
 	return rect;
 }
 
+PGFXRECT FromWinRECT(RECT* rect)
+{
+	return AllocRect(NULL,rect->left,rect->top,rect->right - rect->left,rect->bottom - rect->top);
+}
+
 PGFXRECT AddCloseGadget(HDC hdc,PGFXRECT winRect)
 {
     //OutputDebugStringA("AddCloseGadget...\n");
@@ -49,18 +54,24 @@ PGFXRECT AddCloseGadget(HDC hdc,PGFXRECT winRect)
     target.right  = target.left + 10;
     target.bottom = target.top  + 10;
     
-    winRect->nonclientRect.x = target.left;
-    winRect->nonclientRect.y = target.top;
-    winRect->nonclientRect.width = target.right - target.left;
-    winRect->nonclientRect.height = target.bottom - target.top;
-
+	if(!hdc)
+	{
+		return AllocRect(NULL, target.left,target.top,target.right - target.left ,target.bottom - target.top );
+	}
+	else
+	{
+		UpdateRect((PGFXRECT)winRect->nonclientList->head->data,
+		           target.left,target.top,
+				   target.right - target.left,target.bottom - target.top);
+	}
+	/*
     sprintf(debugOut,"NON-CLIENT CLICK x: %d y: %d w: %d h: %d \n", 
     winRect->nonclientRect.x,
     winRect->nonclientRect.y,
     winRect->nonclientRect.width,
     winRect->nonclientRect.height);
     OutputDebugStringA(debugOut);
-
+	*/
     //FrameRect(hdc, &target, CreateSolidBrush(RGB(255,255,255)));
     FrameRect(hdc, &target, CONST_WHITE);
 
@@ -76,7 +87,7 @@ PGFXRECT AddCloseGadget(HDC hdc,PGFXRECT winRect)
     return NULL;
 }
 
-PGFXRECT AddMinGadget(HDC hdc, PGFXRECT winRect)
+PGFXRECT AddTitleBarGadget(HDC hdc, PGFXRECT winRect)
 {
     //OutputDebugStringA("AddCloseGadget...\n");
     RECT target;
@@ -117,7 +128,7 @@ PGFXRECT AddTitleGadget(HDC hdc, PGFXRECT winRect)
 				*/
 	title.left   = target.left + FXM_BORDERSIZE;
 	title.top    = target.top  + FXM_BORDERSIZE;
-	title.right  = title.left  + (sFont * strlen(winRect->name)) + FXM_BORDERSIZE;
+	title.right  = title.left  + (sFont * strlen(winRect->name)) + FXM_BORDERSIZE + FXM_BORDERSIZE;
 	title.bottom = title.top   + FXM_TITLEHEIGHT - FXM_BORDERSIZE;
 	
 	//FillRect(hdc,&title, CreateSolidBrush((COLORREF)RGB(255,255,255)));			
@@ -285,6 +296,10 @@ BOOL DragStart(PFXUIENV pguiEnv, int xPos, int yPos)
         pguiEnv->state->dragOn = TRUE;
         pguiEnv->state->dragStart.x = xPos;
         pguiEnv->state->dragStart.y = yPos;
+		
+        pguiEnv->state->dragOffset.x = xPos - pguiEnv->state->focusCurrent->x;
+        pguiEnv->state->dragOffset.y = yPos - pguiEnv->state->focusCurrent->y;
+		
         return TRUE;
     }
 

@@ -20,6 +20,7 @@ typedef struct _fx_ui_state
 	BOOL 		    dragOn;
 	FXPOINT 	    dragStart; 
     FXPOINT 	    dragEnd; 
+	FXPOINT 	    dragOffset; 
     void* 	        dragArea;
     BOOL            isNonClient;
     PGFXRECT        focusCurrent;
@@ -49,9 +50,10 @@ typedef PGFXRECT (*ApplyWindowAttr)(HDC hdc,PGFXRECT winRect);
 typedef void (*FXWndProc)(HDC hdc,PGFXRECT winRect);
 
 RECT* ToWinRECT(RECT* rect, GFXRECT* grect);
+PGFXRECT FromWinRECT(RECT* rect);
 
 PGFXRECT AddCloseGadget(HDC hdc,PGFXRECT winRect);
-PGFXRECT AddMinGadget(HDC hdc,PGFXRECT winRect);
+PGFXRECT AddTitleBarGadget(HDC hdc,PGFXRECT winRect);
 PGFXRECT AddTitleGadget(HDC hdc,PGFXRECT winRect);
 
 typedef struct _fx_window

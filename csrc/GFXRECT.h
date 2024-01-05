@@ -5,6 +5,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include "List.h"
+
 #define FX_ATTR_HIDDEN		 0
 #define FX_ATTR_VISIBLE		 2
 #define FX_ATTR_DESKTOP		 0x8000
@@ -35,7 +37,7 @@ typedef struct _fx_rect
 	int   	orgX = 0;
 	int   	orgY = 0;
 	int     szname = 0;
-	GRECT   nonclientRect;
+	PFXNODELIST nonclientList;
 	struct _fx_rect* clientRect;
 	void* wndProc;
 } GFXRECT;
@@ -44,6 +46,8 @@ typedef GFXRECT* PGFXRECT;
 PGFXRECT AllocRect(const char* name, int x,int y,int width,int height);
 PGFXRECT AllocRectEx(const char* name, int x,int y,int width,int height,long z,int attr);
 PGFXRECT CopyRect(PGFXRECT src);
+
+PGFXRECT UpdateRect(PGFXRECT target,int x,int y,int width,int height);
 
 long NextDepth();
 

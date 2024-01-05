@@ -27,7 +27,7 @@ HWND chwnd = NULL;
 char debugOut[1024];
 unsigned char FONTDATA[768];
 
-ApplyWindowAttr fApplyChrome[] = {AddCloseGadget,AddMinGadget,AddTitleGadget,NULL};
+ApplyWindowAttr fApplyChrome[] = {AddCloseGadget,AddTitleBarGadget,AddTitleGadget,NULL};
 
 void RedrawScreen(BOOL bBackground);
 
@@ -331,9 +331,24 @@ VOID DrawRectangles(HDC hdc, PFXNODELIST renderList)
 			FillRect(hdc, ToWinRECT(&target, r), CreateSolidBrush((COLORREF)r->renderColor));
 
 			int i = 0;
+			
+			if(!r->nonclientList)
+			{
+				r->nonclientList = AllocList();
+				while(fApplyChrome[i])
+				{
+					PGFXRECT rc = fApplyChrome[i++](NULL,r);
+					if(rc)
+					{
+						ListAddStart(r->nonclientList, rc);
+					}
+				}				
+			}
+			
+			i = 0;
 			while(fApplyChrome[i])
 			{
-				fApplyChrome[i++](hdc,r);
+				PGFXRECT rc = fApplyChrome[i++](hdc,r);
 			}
 
 			if(r->clientRect)
@@ -683,7 +698,17 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 					RECT target;
 
 					//HBRUSH hBack = CreateSolidBrush(RGB(64,64,64));	
-
+					/*
+					sprintf(debugOut,"DRAG MOVE x: %d y: %d dx: %d dy: %d ox: %d oy: %d \n",
+					xPos,
+					yPos,
+					pguiEnv->state->dragStart.x,
+					pguiEnv->state->dragStart.y,
+					pguiEnv->state->dragOffset.x,
+					pguiEnv->state->dragOffset.y);
+					OutputDebugStringA(debugOut);
+					*/
+					
 					//FrameRect(hdc,&dragRect,hBack);
 					DrawFocusRect(hdc,&dragRect);
 					//HBRUSH hBrush = CreateHatchBrush(HS_HORIZONTAL,RGB(200,200,200));	
@@ -693,6 +718,9 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 					target.bottom = yPos + 100;
 					target.right = xPos + 100;
 					*/
+					yPos = yPos - pguiEnv->state->dragOffset.y;
+					xPos = xPos - pguiEnv->state->dragOffset.x;
+					
 					target.top    = yPos;
 					target.left   = xPos;
 					target.bottom = target.top  + pguiEnv->state->focusCurrent->height;
@@ -780,20 +808,13 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 				
 				if(pguiEnv->state->isNonClient)
 				{
-					OutputDebugStringA("OnClick NON-CLIENT CLICK");
-
-					sprintf(debugOut,"NON-CLIENT CLICK x: %d y: %d\n", xPos, yPos);
-					OutputDebugStringA(debugOut);
-					sprintf(debugOut,"NON-CLIENT CLICK x: %d y: %d w: %d h: %d \n", 
-					pguiEnv->state->focusCurrent->nonclientRect.x,
-					pguiEnv->state->focusCurrent->nonclientRect.y,
-					pguiEnv->state->focusCurrent->nonclientRect.width,
-					pguiEnv->state->focusCurrent->nonclientRect.height);
-					OutputDebugStringA(debugOut);
-
-					if(PointInRect((PGFXRECT)&pguiEnv->state->focusCurrent->nonclientRect,xPos,yPos ))
+					if(PointInRect((PGFXRECT)pguiEnv->state->focusCurrent->nonclientList->head->data,xPos,yPos ))
 					{
-						OutputDebugStringA("OnClick NON-CLIENT CLOSE");
+						//OutputDebugStringA("OnClick NON-CLIENT CLOSE");
+						if(OnCtlClick(xPos,yPos))
+						{
+							RedrawScreen(FALSE);
+						}
 						return FALSE;
 					}
 
@@ -807,15 +828,10 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 					HDC hdc =  GetDC(hwnd);
 					if(hdc)
 					{
-						//HBRUSH hBrush = CreateHatchBrush(HS_HORIZONTAL,RGB(200,200,200));	
-					
-						//FrameRect(hdc,&dragRect,hBrush);
 						DrawFocusRect(hdc,&dragRect);
-
 						ReleaseDC(chwnd, hdc);
 					}											
 				}
-
 			}
 		}
 		break;
@@ -825,23 +841,12 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 			int yPos = GET_Y_LPARAM(lParam);
 			if(IsDragging(pguiEnv))
 			{	
-				/*
-				HDC hdc =  GetDC(hwnd);
-				if(hdc)
-				{ 
-					RECT target;
-
-					DrawFocusRect(hdc,&dragRect);
-					
-					//FillRect(hdc, ToWinRECT(&target,pguiEnv->state->focusCurrent), CreateSolidBrush((COLORREF)RGB(64,64,64)));
-					MoveRect(pguiEnv->state->focusCurrent, xPos, yPos);
-					pguiEnv->state->focusCurrent = NULL;
-					RedrawScreen(FALSE);
-				}
-				*/
+				yPos = yPos - pguiEnv->state->dragOffset.y;
+				xPos = xPos - pguiEnv->state->dragOffset.x;				
+		
 				DragEnd(pguiEnv, xPos, yPos);
+
 				MoveFXWindow(pguiEnv, pguiEnv->state->focusCurrent, xPos, yPos);
-				//DragEnd(pguiEnv, xPos, yPos);
 			}
 		}
 		break;
@@ -861,7 +866,7 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 			}
 			else
 			{
-				AddRect(NULL, xPos, yPos, 400,200);
+				AddRect("Workbench", xPos, yPos, 400,200);
 				RedrawScreen(TRUE);
 				//sprintf(debugOut,"WM_RBUTTONDOWN x: %d y: %d\n", xPos, yPos);
 				//OutputDebugStringA(debugOut);

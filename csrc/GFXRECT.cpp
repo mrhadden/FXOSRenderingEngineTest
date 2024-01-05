@@ -9,8 +9,22 @@ long NextDepth()
 	return ++nextDepth;
 }
 
+PGFXRECT UpdateRect(PGFXRECT target,int x,int y,int width,int height)
+{
+	if(!target)
+		return NULL;
+	
+	target->x = x;
+	target->y = y;
+	target->width = width;
+	target->height = height;
+	
+	return target;
+}
+
 PGFXRECT AllocRect(const char* name, int x,int y,int width,int height)
 {
+
 	return AllocRectEx(name,x,y,width,height,-1,0);
 }
 
@@ -39,7 +53,7 @@ PGFXRECT AllocRectEx(const char* name, int x,int y,int width,int height,long z,i
 		p->color = 0;
 		p->renderColor = p->color;
 		p->attr = attr;
-		p->nonclientRect;
+		p->nonclientList = NULL;
 		p->clientRect  = NULL;
 	}
 	return p;
