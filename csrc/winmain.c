@@ -26,6 +26,7 @@ HWND chwnd = NULL;
 
 char debugOut[1024];
 unsigned char FONTDATA[768];
+const char* pInstructions = "Right Click to add a Window.";
 
 ApplyWindowAttr fApplyChrome[] = {AddCloseGadget,AddTitleBarGadget,AddTitleGadget,NULL};
 
@@ -547,7 +548,25 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
             HDC hdc = BeginPaint(hwnd, &ps);
 			if(hdc)
 			{
+				
+
 				FillRect(hdc, &ps.rcPaint, CreateSolidBrush((COLORREF)RGB(64,64,64)));
+
+				HFONT hFont = CreateFontA(16, 8, 0, 0, FW_NORMAL,
+					               FALSE, FALSE, FALSE, ANSI_CHARSET,
+					               OUT_TT_PRECIS, CLIP_DEFAULT_PRECIS, DRAFT_QUALITY, VARIABLE_PITCH,
+					               ("Consolas"));
+				HFONT hOldFont = (HFONT) SelectObject(hdc, hFont); // <-- add this
+
+				SetBkColor(hdc,(COLORREF)RGB(64,64,64));
+				SetTextColor(hdc,(COLORREF)RGB(255,255,255));
+
+
+				TextOutA(hdc,10,10,pInstructions,strlen(pInstructions));
+				
+				SelectObject(hdc, hOldFont);
+				DeleteObject(hFont);
+
 				DrawRectangles(hdc, pguiEnv->renderList);	
 				EndPaint(hwnd, &ps);
 			}
