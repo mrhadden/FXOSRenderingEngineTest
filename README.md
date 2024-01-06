@@ -17,7 +17,9 @@ Java application to prototype hit testing and overlapping methods.  Clearly, thi
 
 
 New Windows C Version
-Windows application to prototype faster hit testing and overlapping methods.  The new redraw is based on overlaps so it is much faster than that implemented in FXOS currently.
+
+This Windows application is used to prototype a faster hit testing and overlapping approach.  The new redraw is based on overlaps so it is much faster than that implemented in FXOS currently.
+
 This code is generally portable to FXOS, so will be incorporated time allows.
 
 ![renderingtest](img/wintest.png)
