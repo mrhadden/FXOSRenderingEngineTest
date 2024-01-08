@@ -1,4 +1,4 @@
-#include "Point.h"
+#include "FXPOINT.h"
 
 PFXPOINT AllocPoint(int x, int y)
 {

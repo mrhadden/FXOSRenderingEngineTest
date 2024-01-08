@@ -1,7 +1,7 @@
 #ifndef __GRECTP__
 #define __GRECTP__
 
-#include "Point.h"
+#include "FXPOINT.h"
 #include "GFXRECT.h"
 
 #define RECTMAX(a,b) ((a) > (b) ? (a) : (b))

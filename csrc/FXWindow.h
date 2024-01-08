@@ -1,11 +1,14 @@
 #ifndef _FX_WINDOW
 #define _FX_WINDOW
 
+#include <windows.h>
 #include <stdint.h>
 
+#include "FXDevices.h"
 #include "GFXRECT.h"
 #include "GFXRECTP.h"
-#include "List.h"
+#include "FXPOINT.h"
+#include "FXLIST.h"
 
 #include "Hourglass.h"
 
@@ -21,7 +24,7 @@ typedef struct _fx_ui_state
 	FXPOINT 	    dragStart; 
     FXPOINT 	    dragEnd; 
 	FXPOINT 	    dragOffset; 
-    void* 	        dragArea;
+    void* 	        driverData;
     BOOL            isNonClient;
     PGFXRECT        focusCurrent;
     PGFXRECT  	    focusHover;
@@ -30,12 +33,16 @@ typedef struct _fx_ui_state
 } FXUISTATE;
 typedef FXUISTATE* PFXUISTATE;
 
+typedef BOOL(*FXEvtProc)(int eventId,int wParm, long lParm);
+
 typedef struct _fx_environment
 {
     PFXNODELIST knownRects;
     PFXNODELIST renderList;
     PFXNODELIST intersectionList;
 	PFXUISTATE  state;
+    PFXDEVDRV   devdrv;
+    FXEvtProc   evtHandler;
 } FXUIENV;
 typedef FXUIENV* PFXUIENV;
 
@@ -51,6 +58,7 @@ typedef struct _fx_resheader
 }HFXRESH;
 typedef HFXRESH* PHFXRESH;
 
+typedef const char* HFXRES;
 typedef const char* HFXFONT;
 
 #define FXM_BORDERSIZE      2
@@ -75,7 +83,7 @@ typedef struct _fx_window
     PFXNODELIST chromeList;
 } FXWINDOW;
 
-PFXUIENV InitUIEnvironment();
+PFXUIENV InitUIEnvironment(int drvDataSize);
 BOOL PointInRect(PGFXRECT r,int mx,int my);
 PGFXRECT GetSelectedRect(PFXNODELIST objList,int mx,int my,int whichAttr);
 PFXPOINT RectToPoint(PGFXRECT r,int whichPoint);
@@ -95,15 +103,41 @@ BOOL IsDblClick(PFXUIENV pguiEnv);
 //
 BOOL MoveRect(PGFXRECT r, int xPos, int yPos);
 
+#define FX_RES_SIG "FXRZ"
+
 HFXFONT LoadFont(const char* fontName);
+HFXRES  LoadResIndirect(const char* type, int width, int height, const char* resName, const char* data, int size);
 const char* GetFontName(HFXFONT hFont);
 void  UnloadFont(HFXFONT hFont);
 void fxRenderText(HDC hdc,const char* message, int dx, int dy,HFXFONT hFont, COLORREF color);
 
+void MoveFXWindow(HWND hWnd,PFXUIENV pEnv, PGFXRECT p, int xPos, int yPos);
 
 void FXTextOut(HDC hdc, const char* message, int dx, int dy,const unsigned char* font, COLORREF color);
 void FXTextOutEx(HDC hdc, const char* message, int dx, int dy,const unsigned char* font, int scale, COLORREF color, COLORREF bkcolor);
 
 int gettimeofday(struct timeval * tp, struct timezone * tzp);
+
+PGFXRECT AddRect(const char* name, int xPos, int yPos, int width, int height, void* wndProc);
+
+void DebugNode(PFXNODE p);
+void __Unhighlight(PFXNODE p);
+void Unhighlight(PFXNODELIST renderList);
+
+
+void RedrawScreen(HWND hWnd, BOOL bBackground);
+void RedrawRect(HWND hWnd,PFXNODE p);
+void RedrawInvalid(HWND hWnd, PFXNODE p);
+void RedrawVisible(PFXNODE p);
+
+VOID DrawRectangles(HDC hdc, PFXNODELIST renderList);
+BOOL OnClick(int xPos, int yPos);
+BOOL OnCtlClick(int xPos, int yPos);
+BOOL OnMove(int xPos, int yPos);
+
+
+
+
+
 
 #endif

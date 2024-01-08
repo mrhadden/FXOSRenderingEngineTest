@@ -1,4 +1,3 @@
-
 #include "GFXRECT.h"
 
 long nextDepth = 1;
@@ -59,7 +58,7 @@ PGFXRECT AllocRectEx(const char* name, int x,int y,int width,int height,long z,i
 	return p;
 }
 
-PGFXRECT CopyRect(PGFXRECT src)
+PGFXRECT fxCopyRect(PGFXRECT src)
 {
 	PGFXRECT p = (PGFXRECT)malloc(sizeof(GFXRECT));	
 	if(p)

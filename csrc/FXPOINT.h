@@ -1,5 +1,5 @@
-#ifndef __POINT_H__
-#define __POINT_H__
+#ifndef __FXPOINT_H__
+#define __FXPOINT_H__
 
 #include <stdio.h>
 #include <string.h>

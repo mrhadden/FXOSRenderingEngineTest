@@ -1,4 +1,4 @@
-#include "List.h"
+#include "FXLIST.h"
 
 struct node *head    = NULL;
 struct node *current = NULL;
@@ -53,7 +53,7 @@ void deleteatend(){
 }
 
 void deletenode(void* key){
-   struct node *temp = head, *prev;
+   struct node *temp = head, *prev = NULL;
    if (temp != NULL && temp->data == key) {
       head = temp->next;
       return;

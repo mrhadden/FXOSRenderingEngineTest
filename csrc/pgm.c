@@ -3,11 +3,15 @@
 #include "pgm.h"
 #include "FXWindow.h"
 
-HFXFONT hEnvious = LoadFont("font/Hourglass.fnt");
+//HFXFONT hEnvious = LoadFont("font/Hourglass.fnt");
+HFXFONT hEnvious = NULL;
 
 BOOL clientProc(HDC hdc, PGFXRECT winRect)
 {
     RECT target;
+
+	if(!hEnvious)
+		 hEnvious = LoadFont("font/Hourglass.fnt");
 
 	//const char* caption = "Client Text\0";
 	const char* caption = "Client Workbench\0";
