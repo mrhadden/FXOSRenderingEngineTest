@@ -3,4 +3,4 @@
 # This is run from WSL term to keep things honest
 # Need x86_64-w64-mingw32-g++ installed in Ubuntu 
 set -x
-x86_64-w64-mingw32-g++ -municode winmain.c Point.cpp GFXRECT.cpp GFXRECTP.c List.c FXWindow.c pgm.c -lgdi32 
+x86_64-w64-mingw32-g++ -municode x86_64-w64-mingw32-g++ -municode winmain.c FXPOINT.c GFXRECT.c GFXRECTP.c FXLIST.c FXWindow.c pgm.c FXDrivers.c WindowsVideoDriver.c WindowsHAL.c -lgdi32 
