@@ -8,6 +8,7 @@
 
 #include "FXWindow.h"
 #include "FXDevices.h"
+#include "WindowsHAL.h"
 
 #include "pgm.h"
 
@@ -39,8 +40,8 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
     RegisterClass(&wc);
 
     // Create the window.
-	pguiEnv = InitUIEnvironment(sizeof(RECT));
-	pdragRect = (RECT*)pguiEnv->state->driverData;
+	//pguiEnv = InitUIEnvironment(sizeof(RECT));
+	//pdragRect = (RECT*)pguiEnv->state->driverData;
 
     HWND hwnd = CreateWindowEx(
         0,                              // Optional window styles.
@@ -82,6 +83,10 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         return 0;
 	case WM_CREATE:
 		{
+			pguiEnv = InitUIEnvironment(sizeof(RECT));
+			pdragRect = (RECT*)pguiEnv->state->driverData;
+			pguiEnv->evtHandler = __irqEventHandler;
+			
 			drv = LoadDriver("WindowsVideoDriver");
 			vid = ((PFXGFXFUNCTABLE)drv->pDriverFunctionTable);
 			if(vid)
@@ -95,10 +100,20 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 			}
 			drv->pDriverData = GetDC(hwnd);
 			pguiEnv->devdrv = drv;
+			
+			pguiEnv->evtHandler(pguiEnv,uMsg,wParam,lParam);
+			
+			SetTimer(hwnd,1,1000,NULL);						
 		}
 		break;
+	case WM_TIMER:
+		{
+			pguiEnv->evtHandler(pguiEnv,uMsg,wParam,lParam);
+		}
+		break;		
 	case WM_SIZE:
 		{
+			pguiEnv->evtHandler(pguiEnv,uMsg,wParam,lParam);
 			VisitList(pguiEnv->renderList,RedrawVisible);
 			InvalidateRect(hwnd, NULL, TRUE);
 		}
@@ -111,6 +126,9 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     case WM_PAINT:
         {
             PAINTSTRUCT ps;
+			
+			pguiEnv->evtHandler(pguiEnv,uMsg,wParam,lParam);
+			
 			VisitList(pguiEnv->renderList,RedrawVisible);
 
             HDC hdc = BeginPaint(hwnd, &ps);
@@ -142,6 +160,9 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         return 0;
 	case WM_MOUSEMOVE:
 		{
+			pguiEnv->evtHandler(pguiEnv,WM_MOUSEMOVE,wParam,lParam);
+			
+			/*
 			int xPos = GET_X_LPARAM(lParam); 
 			int yPos = GET_Y_LPARAM(lParam); 
 
@@ -190,10 +211,13 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 				//if(OnMove(xPos,yPos))
 				//	InvalidateRect(hwnd, NULL, TRUE);				
 			}
+			*/
 		}
 		break;
 	case WM_LBUTTONDOWN:
 		{
+			pguiEnv->evtHandler(pguiEnv,WM_LBUTTONDOWN,wParam,lParam);
+			
 			int xPos = GET_X_LPARAM(lParam); 
 			int yPos = GET_Y_LPARAM(lParam); 
 
@@ -267,6 +291,8 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 		break;
 	case WM_LBUTTONUP:
 		{
+			pguiEnv->evtHandler(pguiEnv,WM_LBUTTONUP,wParam,lParam);
+			
 			int xPos = GET_X_LPARAM(lParam); 
 			int yPos = GET_Y_LPARAM(lParam);
 			if(IsDragging(pguiEnv))
@@ -282,6 +308,9 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 		break;
 	case WM_RBUTTONDOWN:
 		{
+			pguiEnv->evtHandler(pguiEnv,WM_RBUTTONDOWN,wParam,lParam);
+			
+			/*
 			int xPos = GET_X_LPARAM(lParam); 
 			int yPos = GET_Y_LPARAM(lParam); 
 
@@ -301,11 +330,14 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 				//sprintf(debugOut,"WM_RBUTTONDOWN x: %d y: %d\n", xPos, yPos);
 				//OutputDebugStringA(debugOut);
 			}
+			*/
 
 		}
 		break;
 	case WM_NCMOUSELEAVE:
 		{
+			pguiEnv->evtHandler(pguiEnv,WM_NCMOUSELEAVE,wParam,lParam);
+			
 			int xPos = GET_X_LPARAM(lParam); 
 			int yPos = GET_Y_LPARAM(lParam); 
 

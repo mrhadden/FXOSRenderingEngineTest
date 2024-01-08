@@ -1,6 +1,9 @@
 
 #include "FXWindow.h"
 #include "FXDevices.h"
+#include <windowsx.h>
+#include "pgm.h"
+#include "WindowsHAL.h"
 
 HBRUSH CONST_WHITE = NULL;
 HBRUSH CONST_BLACK = NULL;
@@ -13,7 +16,6 @@ char __fx_debugOut[256];
 PFXUIENV __fx_penv = NULL;
 
 ApplyWindowAttr fApplyChrome[] = { AddCloseGadget,AddTitleBarGadget,AddTitleGadget,NULL };
-
 
 PFXUIENV InitUIEnvironment(int drvDataSize)
 {
@@ -43,6 +45,8 @@ PFXUIENV InitUIEnvironment(int drvDataSize)
 
 			ListAddStart(env->renderList, env->state->desktop);
 		}
+		
+		//env->evtHandler = __irqEventHandler;
 	}
 
 	__fx_penv = env;
@@ -464,14 +468,14 @@ void fxRenderText(HDC hdc,const char* message, int dx, int dy,HFXFONT hFont, COL
 	
 	PHFXRESH header = (PHFXRESH)hFont;
 	
-	
+	/*
 	sprintf(__fx_debugOut,"fxRenderText %p name:%.32s  w:%d h:%d \n",
 	(void*)hFont,
     header->fontName,
     header->width,
     header->height);
     OutputDebugStringA(__fx_debugOut);
-	
+	*/
 	
 	
 	const unsigned char* font = (const unsigned char*)&header->data;
@@ -796,7 +800,7 @@ void RedrawScreen(HWND hWnd,BOOL bBackground)
 	}
 }
 
-BOOL OnClick(int xPos, int yPos)
+OnClick(int xPos, int yPos)
 {
 	BOOL bRet = FALSE;
 
@@ -1006,5 +1010,6 @@ BOOL OnMove(int xPos, int yPos)
 
 	return bRet;
 }
+
 
 

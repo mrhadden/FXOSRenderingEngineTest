@@ -33,7 +33,7 @@ typedef struct _fx_ui_state
 } FXUISTATE;
 typedef FXUISTATE* PFXUISTATE;
 
-typedef BOOL(*FXEvtProc)(int eventId,int wParm, long lParm);
+typedef BOOL(*FXEvtProc)(void* pEnv, int eventId,int wParm, long lParm);
 
 typedef struct _fx_environment
 {
