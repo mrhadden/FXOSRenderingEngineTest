@@ -10,13 +10,19 @@ BOOL clientProc(HDC hdc, PGFXRECT winRect)
 {
     RECT target;
 
+	//OutputDebugStringA("clientProc enter...");
+
 	if(!hEnvious)
 		 hEnvious = LoadFont("font/Hourglass.fnt");
+
+	//OutputDebugStringA("clientProc font loaded...");
 
 	//const char* caption = "Client Text\0";
 	const char* caption = "Client Workbench\0";
 
     ToWinRECT(&target, winRect);
+
+	//OutputDebugStringA("clientProc fxRenderText...");
 
 	fxRenderText(hdc,caption,
 	             target.left + 1 + FXM_BORDERSIZE,

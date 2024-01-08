@@ -385,31 +385,33 @@ BOOL MoveRect(PGFXRECT r, int xPos, int yPos )
 HFXFONT LoadFont(const char* fontName)
 {
 	char debugOut[128];
-	char* hFont = NULL;
 	PHFXRESH hFontHeader = NULL;
 
-	
+	//OutputDebugStringA("LoadFont enter...\n");
 
 	FILE* ff = fopen(fontName,"rb");
 	if(ff)
 	{
-		char* hFont = (char*)malloc(768 + 42);
-		int size = fread(hFont,768 + 42,1,ff);
+		char *hFont = (char*)malloc(768 + sizeof(HFXRESH));
+		int size = fread(hFont,768 + sizeof(HFXRESH),1,ff);
 		fclose(ff);
+		OutputDebugStringA("LoadFont loaded...\n");
+		hFontHeader = (PHFXRESH)hFont;
 	}
 	else
 	{
 		hFontHeader = (PHFXRESH)LoadResIndirect((const char*)FX_RES_SIG, 8, 8, (const char*)"System\0", (const char*)FONT_HOURGLASS_BITMAP, 768);
 	}
-	
-	sprintf(debugOut,"LoadFont name:%.32s sig:%.4s type:%.4s w:%d h:%d \n", 
+	/*
+	sprintf(debugOut,"LoadFont name:%.32s sig:%.4s rtype:%.4s w:%d h:%d \n", 
     hFontHeader->fontName,
 	hFontHeader->sig,
     hFontHeader->type,
     hFontHeader->width,
     hFontHeader->height);
     OutputDebugStringA(debugOut);
-	
+	*/
+	//OutputDebugStringA("LoadFont Exit...\n");
 	
 	return (HFXFONT)(hFontHeader);
 }
@@ -462,11 +464,22 @@ void fxRenderText(HDC hdc,const char* message, int dx, int dy,HFXFONT hFont, COL
 	
 	PHFXRESH header = (PHFXRESH)hFont;
 	
+	
+	sprintf(__fx_debugOut,"fxRenderText %p name:%.32s  w:%d h:%d \n",
+	(void*)hFont,
+    header->fontName,
+    header->width,
+    header->height);
+    OutputDebugStringA(__fx_debugOut);
+	
+	
+	
 	const unsigned char* font = (const unsigned char*)&header->data;
 	
     while(*message)
     {
-        const unsigned char* fchar = &font[(*message - 32)*header->width];
+        //const unsigned char* fchar = &font[(*message - 32)*header->width];
+		const unsigned char* fchar = &font[(*message - 32)*header->width];
 
         for(int y=0;y<header->height;y++)
         {

@@ -296,7 +296,7 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 			}
 			else
 			{
-				AddRect("Workbench", xPos, yPos, 400,200, clientProc );
+				AddRect("Workbench", xPos, yPos, 400,200, (void*)clientProc );
 				RedrawScreen(hwnd,TRUE);
 				//sprintf(debugOut,"WM_RBUTTONDOWN x: %d y: %d\n", xPos, yPos);
 				//OutputDebugStringA(debugOut);
