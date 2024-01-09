@@ -12,7 +12,7 @@ void drvRedrawScreen(PFXUIENV env,BOOL bBackground)
 	}
 }
 
-BOOL __irqEventHandler(void* pEnv,int eventId,int wParm, long lParm)
+int __irqEventHandler(void* pEnv,int eventId,int wParm, long lParm)
 {
 	/*
 	char debugOut[256];
@@ -83,7 +83,7 @@ BOOL __irqEventHandler(void* pEnv,int eventId,int wParm, long lParm)
 		break;
 		*/
 	};
-	
+	return FALSE;
 	
 }
 

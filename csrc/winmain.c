@@ -162,7 +162,7 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 		{
 			pguiEnv->evtHandler(pguiEnv,WM_MOUSEMOVE,wParam,lParam);
 			
-			/*
+			
 			int xPos = GET_X_LPARAM(lParam); 
 			int yPos = GET_Y_LPARAM(lParam); 
 
@@ -211,7 +211,7 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 				//if(OnMove(xPos,yPos))
 				//	InvalidateRect(hwnd, NULL, TRUE);				
 			}
-			*/
+			
 		}
 		break;
 	case WM_LBUTTONDOWN:

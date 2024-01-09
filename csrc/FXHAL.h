@@ -12,8 +12,8 @@
 #define FX_IRQ_VIDEO 	(7) 
 
 
-
 int _fx_init_hardware();
+int _fx_irq_signal(int type, void* data);
 
 
 
