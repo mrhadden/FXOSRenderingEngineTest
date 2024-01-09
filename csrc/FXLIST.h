@@ -18,7 +18,9 @@ typedef struct node_list
 {
 	PFXNODE head;
 	PFXNODE current;
-   const char* name;
+	int 	size;
+	int		max;
+	const char* name;
 }FXNODELIST;
 typedef FXNODELIST* PFXNODELIST;
 
@@ -38,13 +40,16 @@ int  searchlist(void* key);
 
 PFXNODELIST AllocList();
 PFXNODELIST AllocNamedList(const char* name);
+PFXNODELIST AllocListMax(const char* name, int maxSize);
 void ListClear(PFXNODELIST list);
 
 PFXNODE ListAddStart(PFXNODELIST list,void* data);
 PFXNODE ListAddEnd(PFXNODELIST list,void* data);
 
+PFXNODE ListRemoveEnd(PFXNODELIST list);
 PFXNODE ListRemove(PFXNODELIST list,void* data);
 
+int ListSize(PFXNODELIST list);
 PFXNODE ListSearch(PFXNODELIST list,void* data);
 
 void DeallocNode(PFXNODE node);

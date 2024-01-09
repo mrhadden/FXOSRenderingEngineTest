@@ -83,13 +83,28 @@ int searchlist(void* key){
    return 0;
 }
 
+PFXNODELIST AllocListMax(const char* name, int maxSize)
+{
+	PFXNODELIST list = (PFXNODELIST)malloc(sizeof(FXNODELIST));
+	if(list)
+	{
+		memset(list,0,sizeof(FXNODELIST));
+		if(name)
+			list->name = name;
+		list->size = 0;
+		list->max  = maxSize;
+	}
+	return list;	
+}
+
 PFXNODELIST AllocList()
 {
-   return AllocNamedList(NULL);
+   return AllocListMax(NULL, 0);
 }
 
 PFXNODELIST AllocNamedList(const char* name)
 {
+	/*
 	PFXNODELIST list = (PFXNODELIST)malloc(sizeof(FXNODELIST));
 	if(list)
 	{
@@ -98,6 +113,8 @@ PFXNODELIST AllocNamedList(const char* name)
          list->name = name;
 	}
 	return list;
+	*/
+	return AllocListMax(name,0);
 }
 
 void ListClear(PFXNODELIST list)
@@ -135,6 +152,8 @@ PFXNODE ListAddStart(PFXNODELIST list,void* data)
 	newNode->next = listHead;
 	list->head = newNode;
 	
+	list->size++;
+	
 	return newNode;
 }
 
@@ -142,17 +161,56 @@ PFXNODE ListAddEnd(PFXNODELIST list,void* data)
 {
 	PFXNODE newNode = (PFXNODE) malloc(sizeof(FXNODE));
 	newNode->data = data;
-   newNode->next = NULL;
+    newNode->next = NULL;
 	PFXNODE linkedlist = list->head;
+	
+	if(!linkedlist)
+	{
+		list->head = newNode;
+	}
+	else
+	{
+		// point it to old first node
+		while(linkedlist->next != NULL)
+		  linkedlist = linkedlist->next;
 
-	// point it to old first node
-	while(linkedlist->next != NULL)
-	  linkedlist = linkedlist->next;
-
-	//point first to new first node
-	linkedlist->next = newNode;
+		//point first to new first node
+		linkedlist->next = newNode;
+	}
+	list->size++;
 	
 	return newNode;
+}
+
+PFXNODE ListRemoveEnd(PFXNODELIST list)
+{
+	struct node *linkedlist = list->head;
+	
+	PFXNODE removed = NULL;
+	
+	if(!linkedlist)
+		return NULL;
+	
+	if(linkedlist->next)
+	{
+		while (linkedlist->next->next != NULL)
+		{
+			linkedlist = linkedlist->next;
+		}
+		removed = linkedlist->next;
+		linkedlist->next = NULL;
+	}
+	else
+	{
+		removed = linkedlist;
+		list->head = NULL;
+		list->size = 0;
+	}
+	
+	if(list->size > 0)
+		list->size--;
+	
+	return removed;
 }
 
 PFXNODE ListRemove(PFXNODELIST list,void* data)
@@ -179,8 +237,15 @@ PFXNODE ListRemove(PFXNODELIST list,void* data)
    // Remove the node
    prev->next = temp->next;
    
+   list->size--;
+   
    return temp;
    
+}
+
+int ListSize(PFXNODELIST list)
+{
+   return list->size;   
 }
 
 PFXNODE ListSearch(PFXNODELIST list,void* key)

@@ -43,6 +43,37 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
 	//pguiEnv = InitUIEnvironment(sizeof(RECT));
 	//pdragRect = (RECT*)pguiEnv->state->driverData;
 
+	PFXNODELIST test = AllocListMax("test",256);
+	if(test)
+	{
+		for(int i=0;i<10;i++)
+			ListAddStart(test, (void*)i);
+		int s = ListSize(test);
+		sprintf(debugOut,"list size: %d",s);
+		OutputDebugStringA(debugOut);	
+
+		for(int i=0;i<15;i++)
+		{
+			PFXNODE n = ListRemoveEnd(test);
+			if(n)
+			{
+				int s = ListSize(test);
+				sprintf(debugOut,"list data: %p",n->data);
+				OutputDebugStringA(debugOut);
+			}	
+			else
+			{
+				OutputDebugStringA("list data: NULL");
+			}
+			sprintf(debugOut,"list size: %d",ListSize(test));
+			OutputDebugStringA(debugOut);
+		}
+
+	}
+
+
+
+
     HWND hwnd = CreateWindowEx(
         0,                              // Optional window styles.
         CLASS_NAME,                     // Window class
@@ -103,7 +134,8 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 			
 			pguiEnv->evtHandler(pguiEnv,uMsg,wParam,lParam);
 			
-			SetTimer(hwnd,1,1000,NULL);						
+			SetTimer(hwnd,1,2000,NULL);		
+			SetTimer(hwnd,2,1000,NULL);				
 		}
 		break;
 	case WM_TIMER:

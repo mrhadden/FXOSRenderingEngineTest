@@ -1,7 +1,22 @@
 #include "FXDevices.h"
+#include "FXHAL.h"
 #include "FXWindow.h"
 #include "WindowsHAL.h"
 #include "pgm.h"
+
+int _timer_count[] = {0,0};
+
+FXHDWMSG _fx_msg;
+
+void _hal_queue_lock()
+{
+	OutputDebugStringA("_hal_queue_lock\n");
+}
+
+void _hal_queue_unlock()
+{
+	OutputDebugStringA("_hal_queue_unlock\n");
+}
 
 void drvRedrawScreen(PFXUIENV env,BOOL bBackground)
 {
@@ -22,6 +37,8 @@ int __irqEventHandler(void* pEnv,int eventId,int wParm, long lParm)
 	lParm);
     OutputDebugStringA(debugOut);
 	*/
+	
+	
 	PFXUIENV pguiEnv = (PFXUIENV)pEnv;
 	
 	switch(eventId)
@@ -29,11 +46,21 @@ int __irqEventHandler(void* pEnv,int eventId,int wParm, long lParm)
 	case WM_CREATE:
 		{
 			OutputDebugStringA("HAL CREATE...");
+			_fx_init_hardware();
 		}
 		break;
 	case WM_TIMER:
 		{
+			_timer_count[wParm]++;
+			
 			OutputDebugStringA("HAL TICK...");
+			
+			_fx_msg.type = wParm;
+			_fx_msg.irq  = 1;
+			_fx_msg.size = 4;
+			_fx_msg.data = (void*)_timer_count;
+			
+			_fx_irq_signal(_fx_msg.type, &_fx_msg);
 		}
 		break;
 	case WM_RBUTTONDOWN:
