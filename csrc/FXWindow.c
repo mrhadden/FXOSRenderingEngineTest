@@ -800,7 +800,7 @@ void RedrawScreen(HWND hWnd,BOOL bBackground)
 	}
 }
 
-OnClick(int xPos, int yPos)
+BOOL OnClick(int xPos, int yPos)
 {
 	BOOL bRet = FALSE;
 

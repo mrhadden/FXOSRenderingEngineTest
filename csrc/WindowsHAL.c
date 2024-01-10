@@ -8,14 +8,40 @@ int _timer_count[] = {0,0};
 
 FXHDWMSG _fx_msg;
 
+char _hal_debug_buffer[256];
+
+void _hal_debug(const char* message)
+{
+    OutputDebugStringA(message);	
+}
+
+void _hal_debug_int(const char* message,int val)
+{
+	sprintf(_hal_debug_buffer,message,val);
+    OutputDebugStringA(_hal_debug_buffer);	
+}
+
+void _hal_debug_string(const char* message,const char* val)
+{
+	sprintf(_hal_debug_buffer,message,val);
+    OutputDebugStringA(_hal_debug_buffer);	
+}
+
+void _hal_debug_pointer(const char* message,void* val)
+{
+	sprintf(_hal_debug_buffer,message,val);
+    OutputDebugStringA(_hal_debug_buffer);	
+}
+
+
 void _hal_queue_lock()
 {
-	OutputDebugStringA("_hal_queue_lock\n");
+	//OutputDebugStringA("_hal_queue_lock\n");
 }
 
 void _hal_queue_unlock()
 {
-	OutputDebugStringA("_hal_queue_unlock\n");
+	//OutputDebugStringA("_hal_queue_unlock\n");
 }
 
 void drvRedrawScreen(PFXUIENV env,BOOL bBackground)
@@ -54,13 +80,19 @@ int __irqEventHandler(void* pEnv,int eventId,int wParm, long lParm)
 			_timer_count[wParm]++;
 			
 			//OutputDebugStringA("HAL TICK...");
-			
-			_fx_msg.type = wParm;
-			_fx_msg.irq  = 1;
-			_fx_msg.size = 4;
-			_fx_msg.data = (void*)_timer_count;
-			
-			_fx_irq_signal(_fx_msg.type, &_fx_msg);
+			if(wParm == 2)
+			{
+				_fx_cpu_time();
+			}
+			else
+			{
+				_fx_msg.type = wParm;
+				_fx_msg.irq  = 1;
+				_fx_msg.size = 4;
+				_fx_msg.l_data1 = _timer_count[wParm];
+				
+				_fx_irq_signal(_fx_msg.type, &_fx_msg);
+			}
 		}
 		break;
 	case WM_RBUTTONDOWN:
@@ -72,12 +104,21 @@ int __irqEventHandler(void* pEnv,int eventId,int wParm, long lParm)
 			drvRedrawScreen(pguiEnv,TRUE);
 		}	
 		break;
-	/*
 	case WM_MOUSEMOVE:
-		{
+		{			
 			int xPos = GET_X_LPARAM(lParm); 
 			int yPos = GET_Y_LPARAM(lParm); 
+			
+			_fx_msg.type = FX_IRQ_MOUSE;
+			_fx_msg.irq  = 4;
+			_fx_msg.size = 4;
+			_fx_msg.w_data1 = 0;
+			_fx_msg.l_data1 = xPos;
+			_fx_msg.l_data2 = yPos;
+			
+			_fx_irq_signal(_fx_msg.type, &_fx_msg);
 
+			/*
 			if(IsDragging(pguiEnv))
 			{
 				HDC hdc = GetDC(hwnd);
@@ -106,9 +147,10 @@ int __irqEventHandler(void* pEnv,int eventId,int wParm, long lParm)
 					ReleaseDC(hwnd, hdc);
 				}				
 			}
+			*/
 		}
 		break;
-		*/
+		
 	};
 	return FALSE;
 	

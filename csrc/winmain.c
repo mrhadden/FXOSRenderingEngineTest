@@ -21,7 +21,7 @@ PFXDEVDRV       drv;
 PFXGFXFUNCTABLE vid;
 
 char debugOut[1024];
-const char* pInstructions = "Right Click to add a Window.";
+const char* pInstructions = "Right Click to add a Window.  Focus: %p";
 
 int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine, int nCmdShow)
 {
@@ -129,20 +129,20 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 			drv->pDriverData = GetDC(hwnd);
 			pguiEnv->devdrv = drv;
 			
-			pguiEnv->evtHandler(pguiEnv,uMsg,wParam,lParam);
+			//pguiEnv->evtHandler(pguiEnv,uMsg,wParam,lParam);
 			
 			SetTimer(hwnd,1,2000,NULL);		
-			SetTimer(hwnd,2,1000,NULL);				
+			SetTimer(hwnd,2,1,NULL);				
 		}
 		break;
 	case WM_TIMER:
 		{
-			pguiEnv->evtHandler(pguiEnv,uMsg,wParam,lParam);
+			//pguiEnv->evtHandler(pguiEnv,uMsg,wParam,lParam);
 		}
 		break;		
 	case WM_SIZE:
 		{
-			pguiEnv->evtHandler(pguiEnv,uMsg,wParam,lParam);
+			//pguiEnv->evtHandler(pguiEnv,uMsg,wParam,lParam);
 			VisitList(pguiEnv->renderList,RedrawVisible);
 			InvalidateRect(hwnd, NULL, TRUE);
 		}
@@ -156,7 +156,7 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         {
             PAINTSTRUCT ps;
 			
-			pguiEnv->evtHandler(pguiEnv,uMsg,wParam,lParam);
+			//pguiEnv->evtHandler(pguiEnv,uMsg,wParam,lParam);
 			
 			VisitList(pguiEnv->renderList,RedrawVisible);
 
@@ -173,9 +173,11 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
 				SetBkColor(hdc,(COLORREF)RGB(64,64,64));
 				SetTextColor(hdc,(COLORREF)RGB(255,255,255));
+				
+				char text[256];
+				sprintf(text ,pInstructions, pguiEnv->state->focusCurrent);
 
-
-				TextOutA(hdc,10,10,pInstructions,strlen(pInstructions));
+				TextOutA(hdc,10,10,text,strlen(text));
 				
 				SelectObject(hdc, hOldFont);
 				DeleteObject(hFont);
@@ -189,7 +191,7 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         return 0;
 	case WM_MOUSEMOVE:
 		{
-			pguiEnv->evtHandler(pguiEnv,WM_MOUSEMOVE,wParam,lParam);
+			//pguiEnv->evtHandler(pguiEnv,WM_MOUSEMOVE,wParam,lParam);
 			
 			
 			int xPos = GET_X_LPARAM(lParam); 
@@ -223,6 +225,32 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 					ReleaseDC(hwnd, hdc);
 				}				
 			}
+			else
+			{
+				if(wParam & MK_LBUTTON)
+				{
+					OutputDebugStringA("WM_MOUSEMOVE with MK_LBUTTON\n");
+					if(pguiEnv->state->isNonClient)
+					{
+						OutputDebugStringA("WM_MOUSEMOVE DragStart\n");
+						
+						DragStart(pguiEnv,xPos,yPos);
+
+						pdragRect->top    = pguiEnv->state->focusCurrent->y;
+						pdragRect->left   = pguiEnv->state->focusCurrent->x;
+						pdragRect->bottom = pdragRect->top  + pguiEnv->state->focusCurrent->height;
+						pdragRect->right  = pdragRect->left + pguiEnv->state->focusCurrent->width;
+
+						HDC hdc =  GetDC(hwnd);
+						if(hdc)
+						{
+							DrawFocusRect(hdc,pdragRect);
+							ReleaseDC(hwnd, hdc);
+						}											
+					}					
+				}
+			}
+
 
 			if( GetKeyState(VK_SHIFT ) & 0x8000 )
 			{
@@ -245,7 +273,7 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 		break;
 	case WM_LBUTTONDOWN:
 		{
-			pguiEnv->evtHandler(pguiEnv,WM_LBUTTONDOWN,wParam,lParam);
+			//pguiEnv->evtHandler(pguiEnv,WM_LBUTTONDOWN,wParam,lParam);
 			
 			int xPos = GET_X_LPARAM(lParam); 
 			int yPos = GET_Y_LPARAM(lParam); 
@@ -293,14 +321,15 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 				{
 					if(PointInRect((PGFXRECT)pguiEnv->state->focusCurrent->nonclientList->head->data,xPos,yPos ))
 					{
-						//OutputDebugStringA("OnClick NON-CLIENT CLOSE");
+						OutputDebugStringA("OnClick NON-CLIENT CLOSE");
 						if(OnCtlClick(xPos,yPos))
 						{
 							RedrawScreen(hwnd,FALSE);
 						}
 						return FALSE;
 					}
-
+					
+					/*
 					DragStart(pguiEnv,xPos,yPos);
 
 					pdragRect->top    = pguiEnv->state->focusCurrent->y;
@@ -313,19 +342,22 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 					{
 						DrawFocusRect(hdc,pdragRect);
 						ReleaseDC(hwnd, hdc);
-					}											
+					}
+					*/
 				}
 			}
+			//InvalidateRect(hwnd, NULL, TRUE);	
 		}
 		break;
 	case WM_LBUTTONUP:
 		{
-			pguiEnv->evtHandler(pguiEnv,WM_LBUTTONUP,wParam,lParam);
+			//pguiEnv->evtHandler(pguiEnv,WM_LBUTTONUP,wParam,lParam);
 			
 			int xPos = GET_X_LPARAM(lParam); 
 			int yPos = GET_Y_LPARAM(lParam);
 			if(IsDragging(pguiEnv))
 			{	
+			    OutputDebugStringA("WM_LBUTTONUP End Drag.\n");
 				yPos = yPos - pguiEnv->state->dragOffset.y;
 				xPos = xPos - pguiEnv->state->dragOffset.x;				
 		
@@ -333,11 +365,13 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
 				MoveFXWindow(hwnd, pguiEnv, pguiEnv->state->focusCurrent, xPos, yPos);
 			}
+			
+			//InvalidateRect(hwnd, NULL, TRUE);	
 		}
 		break;
 	case WM_RBUTTONDOWN:
 		{
-			pguiEnv->evtHandler(pguiEnv,WM_RBUTTONDOWN,wParam,lParam);
+			//pguiEnv->evtHandler(pguiEnv,WM_RBUTTONDOWN,wParam,lParam);
 			
 			
 			int xPos = GET_X_LPARAM(lParam); 

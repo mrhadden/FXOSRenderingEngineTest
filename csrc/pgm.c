@@ -18,7 +18,12 @@ BOOL clientProc(HDC hdc, PGFXRECT winRect)
 	//OutputDebugStringA("clientProc font loaded...");
 
 	//const char* caption = "Client Text\0";
-	const char* caption = "Client Workbench\0";
+	//const char* caption = "Client Workbench\0";
+
+	char buffer[256];
+
+	sprintf(buffer, " Client %p", (void*)winRect);
+	const char* caption = (const char*)buffer;
 
     ToWinRECT(&target, winRect);
 

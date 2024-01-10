@@ -24,11 +24,19 @@ typedef struct _fx_irq_message
 } FXHDWMSG;
 typedef FXHDWMSG* PFXHDWMSG;
 
+void _hal_debug(const char* message);
+void _hal_debug_int(const char* message,int val);
+void _hal_debug_string(const char* message,const char* val);
+void _hal_debug_pointer(const char* message,void* val);
+
+
+
 
 void _hal_queue_lock();
 void _hal_queue_unlock();
 
 int _fx_init_hardware();
+int _fx_cpu_time();
 int _fx_irq_signal(int type, PFXHDWMSG data);
 
 
