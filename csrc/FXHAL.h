@@ -17,7 +17,10 @@ typedef struct _fx_irq_message
     int   type;	
     int   irq;
 	int   size;	
-	void* data; 
+	int   w_data1;
+	int   w_data2;
+	long  l_data1;
+	long  l_data2;
 } FXHDWMSG;
 typedef FXHDWMSG* PFXHDWMSG;
 

@@ -53,7 +53,7 @@ int __irqEventHandler(void* pEnv,int eventId,int wParm, long lParm)
 		{
 			_timer_count[wParm]++;
 			
-			OutputDebugStringA("HAL TICK...");
+			//OutputDebugStringA("HAL TICK...");
 			
 			_fx_msg.type = wParm;
 			_fx_msg.irq  = 1;

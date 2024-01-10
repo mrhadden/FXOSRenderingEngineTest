@@ -17,6 +17,12 @@ int _fx_init_hardware()
 	return 0;
 }
 
+int _fx_init_cpu()
+{
+	OutputDebugStringA("_fx_init_cpu\n");
+	return 0;
+}
+
 int _fx_irq_signal(int type, PFXHDWMSG data)
 {
 	if(type == FX_IRQ_TIMER)
@@ -28,13 +34,19 @@ int _fx_irq_signal(int type, PFXHDWMSG data)
 	
 	OutputDebugStringA(debug);
 	
-	_hal_queue_lock();
+	if(type == FX_IRQ_PROCESS)
 	{
-		PFXNODE n = ListAddStart(_fx_hardware_queue, data);
-		OutputDebugStringA("_fx_init_hardware event added.\n");
-	}	
-	_hal_queue_unlock();
-	
+		_fx_init_cpu();
+	}
+	else
+	{
+		_hal_queue_lock();
+		{
+			PFXNODE n = ListAddStart(_fx_hardware_queue, data);
+			OutputDebugStringA("_fx_init_hardware event added.\n");
+		}
+		_hal_queue_unlock();
+	}
 	
 	return 0;
 }
