@@ -3,7 +3,6 @@
 #include "FXWindow.h"
 #include "WindowsHAL.h"
 #include "pgm.h"
-
 int _timer_count[] = {0,0};
 
 FXHDWMSG _fx_msg;
