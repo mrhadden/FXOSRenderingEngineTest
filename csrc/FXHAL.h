@@ -10,7 +10,10 @@
 #define FX_IRQ_KEYBOARD	(4) 
 #define FX_IRQ_SERIAL	(5) 
 #define FX_IRQ_FLOPPY	(6) 
-#define FX_IRQ_VIDEO 	(7) 
+#define FX_IRQ_VIDEO 	(7)
+ 
+#define FX_IRQ_MOUSE_L	(8) 
+#define FX_IRQ_MOUSE_R 	(9) 
 
 typedef struct _fx_irq_message
 {
@@ -28,8 +31,6 @@ void _hal_debug(const char* message);
 void _hal_debug_int(const char* message,int val);
 void _hal_debug_string(const char* message,const char* val);
 void _hal_debug_pointer(const char* message,void* val);
-
-
 
 
 void _hal_queue_lock();

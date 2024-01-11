@@ -5,6 +5,7 @@
 #include <windows.h>
 #include <windowsx.h>
 #include <stdio.h>
+#include <process.h>
 
 #include "FXWindow.h"
 #include "FXDevices.h"
@@ -15,28 +16,10 @@
 
 LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
-PFXUIENV pguiEnv   = NULL;
-RECT*    pdragRect = NULL;
-PFXDEVDRV       drv;
-PFXGFXFUNCTABLE vid;
+HALWINCTX ctx;
 
 char debugOut[1024];
 const char* pInstructions = "Right Click to add a Window.  Focus: %p";
-
-
-HANDLE hCpuThread = NULL;
-DWORD  cpuThread = 0;
-
-DWORD WINAPI CpuThreadProc(LPVOID lpParameter)
-{
-	OutputDebugStringA("CpuThreadProc enter...");
-	while(TRUE)
-	{
-		OutputDebugStringA("CpuThreadProc running...");
-		Sleep(1000);
-	}
-}
-
 
 int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine, int nCmdShow)
 {
@@ -58,35 +41,8 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
 	//pguiEnv = InitUIEnvironment(sizeof(RECT));
 	//pdragRect = (RECT*)pguiEnv->state->driverData;
 
-	PFXNODELIST test = AllocListMax("test",256);
-	if(test)
-	{
-		for(int i=0;i<10;i++)
-			ListAddStart(test, (void*)i);
-		int s = ListSize(test);
-		sprintf(debugOut,"list size: %d",s);
-		OutputDebugStringA(debugOut);	
 
-		for(int i=0;i<15;i++)
-		{
-			PFXNODE n = ListRemoveEnd(test);
-			if(n)
-			{
-				int s = ListSize(test);
-				sprintf(debugOut,"list data: %p",n->data);
-				OutputDebugStringA(debugOut);
-			}	
-			else
-			{
-				OutputDebugStringA("list data: NULL");
-			}
-			sprintf(debugOut,"list size: %d",ListSize(test));
-			OutputDebugStringA(debugOut);
-		}
-
-	}
-
-    HWND hwnd = CreateWindowEx(
+    HWND hWnd = CreateWindowEx(
         0,                              // Optional window styles.
         CLASS_NAME,                     // Window class
         L"FXOS Render Testing",    // Window text
@@ -101,13 +57,12 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
         NULL        // Additional application data
         );
 
-	hCpuThread = CreateThread(NULL, 0, CpuThreadProc, NULL, CREATE_SUSPENDED, &cpuThread);
 
-    if (hwnd == NULL)
+    if (hWnd == NULL)
     {
         return 0;
     }
-    ShowWindow(hwnd, nCmdShow);
+    ShowWindow(hWnd, nCmdShow);
 
     MSG msg ;
     while (GetMessage(&msg, NULL, 0, 0) > 0)
@@ -119,7 +74,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
     return 0;
 }
 
-LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
+LRESULT CALLBACK WindowProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
     switch (uMsg)
     {
@@ -129,35 +84,20 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 	case WM_CREATE:
 		{
 			OutputDebugStringA("WM_CREATE\n");
+			
+			ctx.hWnd = hWnd;
+			ctx.hDC  = GetDC(ctx.hWnd);
+			
+			_hal_set_ctx(&ctx);
+			_hal_irq_signal(NULL,uMsg,wParam,lParam);
+			
 			ResumeThread(hCpuThread);
-		}
-		break;
-	case WM_TIMER:
-		{
-			//pguiEnv->evtHandler(pguiEnv,uMsg,wParam,lParam);
-		}
-		break;		
-	case WM_SIZE:
-		{
-			//pguiEnv->evtHandler(pguiEnv,uMsg,wParam,lParam);
-			//VisitList(pguiEnv->renderList,RedrawVisible);
-			//InvalidateRect(hwnd, NULL, TRUE);
-		}
-		break;
-	case WM_ERASEBKGND:
-		{
-	
 		}
 		break;
     case WM_PAINT:
         {
-            PAINTSTRUCT ps;
-			
-			//pguiEnv->evtHandler(pguiEnv,uMsg,wParam,lParam);
-			
-			//VisitList(pguiEnv->renderList,RedrawVisible);
-
-            HDC hdc = BeginPaint(hwnd, &ps);
+            PAINTSTRUCT ps;			
+			HDC hdc = BeginPaint(hWnd, &ps);
 			if(hdc)
 			{
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          				FillRect(hdc, &ps.rcPaint, CreateSolidBrush((COLORREF)RGB(64,64,64)));
@@ -180,40 +120,16 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 				DeleteObject(hFont);
 
 				//DrawRectangles(hdc, pguiEnv->renderList);	
-				EndPaint(hwnd, &ps);
+				EndPaint(hWnd, &ps);
 			}
 
 			OutputDebugStringA("WM_PAINT!\n");
         }
         return 0;
-	case WM_MOUSEMOVE:
-		{
-
-			
-		}
+	default:
+		_hal_irq_signal(NULL,uMsg,wParam,lParam);
 		break;
-	case WM_LBUTTONDOWN:
-		{
-
-		}
-		break;
-	case WM_LBUTTONUP:
-		{
-
-		}
-		break;
-	case WM_RBUTTONDOWN:
-		{
-
-		}
-		break;
-	case WM_NCMOUSELEAVE:
-		{
-
-		}
-		break;
-
     }
 
-    return DefWindowProc(hwnd, uMsg, wParam, lParam);
+    return DefWindowProc(hWnd, uMsg, wParam, lParam);
 }

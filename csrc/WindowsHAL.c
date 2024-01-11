@@ -3,9 +3,17 @@
 #include "FXWindow.h"
 #include "WindowsHAL.h"
 #include "pgm.h"
+
 int _timer_count[] = { 0,0 };
 
-FXHDWMSG _fx_msg;
+FXHDWMSG  		_fx_msg;
+PHALWINCTX 		_fx_ctx;
+PFXUIENV 		_fx_env   = NULL;
+RECT*    		_hal_rect = NULL;
+PFXDEVDRV   	_hal_drv  = NULL;
+PFXGFXFUNCTABLE _hal_vid  = NULL;
+
+CRITICAL_SECTION _hal_queue_cs;
 
 char _hal_debug_buffer[256];
 
@@ -36,11 +44,13 @@ void _hal_debug_pointer(const char* message, void* val)
 void _hal_queue_lock()
 {
 	//OutputDebugStringA("_hal_queue_lock\n");
+	EnterCriticalSection(&_hal_queue_cs);
 }
 
 void _hal_queue_unlock()
 {
 	//OutputDebugStringA("_hal_queue_unlock\n");
+	LeaveCriticalSection(&_hal_queue_cs);
 }
 
 void drvRedrawScreen(PFXUIENV env, BOOL bBackground)
@@ -52,7 +62,29 @@ void drvRedrawScreen(PFXUIENV env, BOOL bBackground)
 	}
 }
 
-int __irqEventHandler(void* pEnv, int eventId, int wParm, long lParm)
+HANDLE hCpuThread = NULL;
+unsigned  cpuThreadId = 0;
+
+unsigned __stdcall CpuThreadProc(LPVOID lpParameter)
+{
+	OutputDebugStringA("CpuThreadProc enter...");
+	while(TRUE)
+	{
+		_hal_cpu_time();
+	}
+}
+
+void _hal_set_ctx(void* ctx)
+{
+	_fx_ctx = (PHALWINCTX)ctx;
+}
+
+void _hal_cpu_time()
+{
+	_fx_cpu_time();
+}
+
+int _hal_irq_signal(void* pEnv, int eventId, int wParm, long lParm)
 {
 	/*
 	char debugOut[256];
@@ -64,45 +96,85 @@ int __irqEventHandler(void* pEnv, int eventId, int wParm, long lParm)
 	*/
 
 
-	PFXUIENV pguiEnv = (PFXUIENV)pEnv;
+	//PFXUIENV pguiEnv = (PFXUIENV)pEnv;
 
 	switch(eventId)
 	{
 	case WM_CREATE:
-	{
-		OutputDebugStringA("HAL CREATE...");
-		_fx_init_hardware();
-	}
-	break;
-	case WM_TIMER:
-	{
-		_timer_count[wParm]++;
+		{
+			OutputDebugStringA("HAL CREATE...");
+			
+			InitializeCriticalSection(&_hal_queue_cs);
 
-		//OutputDebugStringA("HAL TICK...");
-		if(wParm == 2)
-		{
-			_fx_cpu_time();
+			//OutputDebugStringA("_beginthreadex\n");
+			hCpuThread = (HANDLE)_beginthreadex(NULL, 0, &CpuThreadProc, NULL, 
+			                                    CREATE_SUSPENDED, &cpuThreadId);
+
+			
+			_fx_init_hardware();
+			
+			_fx_env   = InitUIEnvironment(sizeof(RECT));
+			_hal_rect = (RECT*)_fx_env->state->driverData;
+			
+			_fx_env->evtHandler = _hal_irq_signal;
+			
+			_hal_drv = LoadDriver("WindowsVideoDriver");
+			_hal_vid = ((PFXGFXFUNCTABLE)_hal_drv->pDriverFunctionTable);
+			if(_hal_vid)
+			{
+				_hal_vid->Info(NULL, NULL);
+				_hal_vid->Initialize(NULL, NULL);
+				_hal_vid->Uninitialize(NULL, NULL);
+				_hal_vid->BitBlt(NULL, NULL);
+				_hal_vid->DrawFillRect(NULL, NULL);
+				_hal_vid->DrawRect(NULL, NULL);
+			}
+			_hal_drv->pDriverData = _fx_ctx->hDC;
+			_fx_env->devdrv       = _hal_drv;		
 		}
-		else
+		break;
+	case WM_TIMER:
 		{
-			_fx_msg.type = wParm;
+			_timer_count[wParm]++;
+
+			//OutputDebugStringA("HAL TICK...");
+			if(wParm == 2)
+			{
+				//_fx_cpu_time();
+			}
+			else
+			{
+				_fx_msg.type = wParm;
+				_fx_msg.irq = 1;
+				_fx_msg.size = 4;
+				_fx_msg.l_data1 = _timer_count[wParm];
+
+				_fx_irq_signal(_fx_msg.type, &_fx_msg);
+			}
+		}
+		break;
+	case WM_LBUTTONDOWN:
+		{
+			_fx_msg.type = FX_IRQ_MOUSE_L;
 			_fx_msg.irq = 1;
 			_fx_msg.size = 4;
-			_fx_msg.l_data1 = _timer_count[wParm];
+			_fx_msg.w_data1 = wParm;
+			_fx_msg.l_data1 = lParm;
 
 			_fx_irq_signal(_fx_msg.type, &_fx_msg);
 		}
-	}
-	break;
+		break;
 	case WM_RBUTTONDOWN:
-	{
-		int xPos = GET_X_LPARAM(lParm);
-		int yPos = GET_Y_LPARAM(lParm);
+		{
+			_fx_msg.type = FX_IRQ_MOUSE_R;
+			_fx_msg.irq = 1;
+			_fx_msg.size = 4;
+			_fx_msg.w_data1 = wParm;
+			_fx_msg.l_data1 = lParm;
 
-		AddRect("Workbench", xPos, yPos, 400, 200, (void*)clientProc);
-		drvRedrawScreen(pguiEnv, TRUE);
-	}
-	break;
+			_fx_irq_signal(_fx_msg.type, &_fx_msg);
+		}
+		break;
 	case WM_MOUSEMOVE:
 	{
 		int xPos = GET_X_LPARAM(lParm);
