@@ -131,6 +131,8 @@ int _hal_irq_signal(void* pEnv, int eventId, int wParm, long lParm)
 			}
 			_hal_drv->pDriverData = _fx_ctx->hDC;
 			_fx_env->devdrv       = _hal_drv;		
+
+			ResumeThread(hCpuThread);
 		}
 		break;
 	case WM_TIMER:

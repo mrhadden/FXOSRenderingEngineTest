@@ -91,7 +91,7 @@ LRESULT CALLBACK WindowProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 			_hal_set_ctx(&ctx);
 			_hal_irq_signal(NULL,uMsg,wParam,lParam);
 			
-			ResumeThread(hCpuThread);
+			
 		}
 		break;
     case WM_PAINT:
