@@ -4,6 +4,8 @@
 #include "WindowsHAL.h"
 #include "pgm.h"
 
+#include <process.h>
+
 int _timer_count[] = { 0,0 };
 
 FXHDWMSG  		_fx_msg;
@@ -14,6 +16,10 @@ PFXDEVDRV   	_hal_drv  = NULL;
 PFXGFXFUNCTABLE _hal_vid  = NULL;
 
 CRITICAL_SECTION _hal_queue_cs;
+
+HANDLE   _hal_cpu_thread;
+unsigned _hal_cpu_thread_id;
+
 
 char _hal_debug_buffer[256];
 
@@ -62,10 +68,8 @@ void drvRedrawScreen(PFXUIENV env, BOOL bBackground)
 	}
 }
 
-HANDLE hCpuThread = NULL;
-unsigned  cpuThreadId = 0;
 
-unsigned __stdcall CpuThreadProc(LPVOID lpParameter)
+unsigned __stdcall _hal_cpu_proc(LPVOID lpParameter)
 {
 	OutputDebugStringA("CpuThreadProc enter...");
 	while(TRUE)
@@ -107,8 +111,8 @@ int _hal_irq_signal(void* pEnv, int eventId, int wParm, long lParm)
 			InitializeCriticalSection(&_hal_queue_cs);
 
 			//OutputDebugStringA("_beginthreadex\n");
-			hCpuThread = (HANDLE)_beginthreadex(NULL, 0, &CpuThreadProc, NULL, 
-			                                    CREATE_SUSPENDED, &cpuThreadId);
+			_hal_cpu_thread = (HANDLE)_beginthreadex(NULL, 0, &_hal_cpu_proc, NULL, 
+			                                         CREATE_SUSPENDED, &_hal_cpu_thread_id);
 
 			
 			_fx_init_hardware();
@@ -131,8 +135,8 @@ int _hal_irq_signal(void* pEnv, int eventId, int wParm, long lParm)
 			}
 			_hal_drv->pDriverData = _fx_ctx->hDC;
 			_fx_env->devdrv       = _hal_drv;		
-
-			ResumeThread(hCpuThread);
+			
+			ResumeThread(_hal_cpu_thread);			
 		}
 		break;
 	case WM_TIMER:

@@ -5,7 +5,7 @@
 #include <windows.h>
 #include <windowsx.h>
 #include <stdio.h>
-#include <process.h>
+
 
 #include "FXWindow.h"
 #include "FXDevices.h"
@@ -90,7 +90,6 @@ LRESULT CALLBACK WindowProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 			
 			_hal_set_ctx(&ctx);
 			_hal_irq_signal(NULL,uMsg,wParam,lParam);
-			
 			
 		}
 		break;
