@@ -32,6 +32,8 @@ PGFXRECT AllocRectEx(const char* name, int x,int y,int width,int height,long z,i
 	PGFXRECT p = (PGFXRECT)malloc(sizeof(GFXRECT));	
 	if(p)
 	{
+		memset(p,0,sizeof(GFXRECT));
+		
 		if(!name)
 		{
 			char* nname = (char*)malloc(64);

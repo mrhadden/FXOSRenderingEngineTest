@@ -204,14 +204,15 @@ BOOL controlProc(HDC hdc, int msgId, int wParam, int lParam, PGFXRECT winRect)
 
 	if(msgId == 1)
 	{
-
+		sprintf(buffer, "CONTROLPROC CREASTE RECT: %p  \n", winRect);
+		OutputDebugStringA(buffer);
 
 		winRect->wndData = malloc(sizeof(CTLDATA));
 		CTLDATA* pd = (CTLDATA*)winRect->wndData;
 		if(pd)
 		{
-			memset(pd->text, 0, 256);
-			//strcpy(pd->text,"Sample Text.");
+			memset(pd, 0, sizeof(CTLDATA));
+			strcpy(pd->text,"Sample Text.");
 
 			
 			sprintf(buffer, "CONTROLPROC init RECT: %p  DATA: %p \n", winRect, winRect->wndData);
@@ -236,6 +237,7 @@ BOOL controlProc(HDC hdc, int msgId, int wParam, int lParam, PGFXRECT winRect)
 			CTLDATA* pd = (CTLDATA*)winRect->wndData;
 			if(pd)
 			{
+				
 				if(strlen(pd->text) == 0)
 				{
 					((char*)pd->text)[0] = wParam;
@@ -244,13 +246,13 @@ BOOL controlProc(HDC hdc, int msgId, int wParam, int lParam, PGFXRECT winRect)
 				{
 					((char*)pd->text)[strlen(pd->text)] = wParam;
 				}
-
+				
 				OutputDebugStringA(pd->text);
 				if(winRect->parent)
 					winRect->parent->attr |= FX_ATTR_INVALID;
 				else
 					winRect->attr |= FX_ATTR_INVALID;
-				//RedrawScreen(NULL,FALSE);
+				RedrawScreen(NULL,FALSE);
 			}
 		}
 	}
@@ -262,9 +264,19 @@ BOOL controlProc(HDC hdc, int msgId, int wParam, int lParam, PGFXRECT winRect)
 		sprintf(buffer, "CONTROLPROC ELSE MSG PARENT: %p \n", winRect->parent->wndData);
 		OutputDebugStringA(buffer);
 
+		CTLDATA* pd = NULL;
+
 		if(winRect->wndData)
 		{
-			CTLDATA* pd = (CTLDATA*)winRect->wndData;
+			pd = (CTLDATA*)winRect->wndData;
+		}
+		else if(winRect->parent->wndData)
+		{
+			pd = (CTLDATA*)winRect->parent->wndData;
+		}
+
+		if(pd)
+		{
 			if(pd)
 			{
 				ToWinRECT(&target, winRect);
@@ -272,12 +284,15 @@ BOOL controlProc(HDC hdc, int msgId, int wParam, int lParam, PGFXRECT winRect)
 				if(!hEnvious)
 					hEnvious = LoadFont("font/Hourglass.fnt");
 
+				sprintf(buffer, "CONTROLPROC pd-text: %p \n", pd->text);
+				OutputDebugStringA(buffer);
+
 				fxRenderText(hdc,
-							pd->text,
-							target.left + 1 + FXM_BORDERSIZE,
-							target.top + 1 + FXM_BORDERSIZE,
-							hEnvious,
-							(COLORREF)RGB(0, 0, 0));
+							 pd->text,
+							 target.left + 1 + FXM_BORDERSIZE,
+							 target.top + 1 + FXM_BORDERSIZE,
+							 hEnvious,
+							 (COLORREF)RGB(0, 0, 0));
 
 				sprintf(buffer, "CONTROLPROC fxRenderText: %s \n", pd->text);
 				OutputDebugStringA(buffer);

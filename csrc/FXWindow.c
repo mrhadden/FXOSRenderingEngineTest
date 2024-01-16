@@ -468,14 +468,15 @@ void fxRenderText(HDC hdc,const char* message, int dx, int dy,HFXFONT hFont, COL
 	
 	PHFXRESH header = (PHFXRESH)hFont;
 	
-	/*
-	sprintf(__fx_debugOut,"fxRenderText %p name:%.32s  w:%d h:%d \n",
+	
+	sprintf(__fx_debugOut,"fxRenderText %p name:%.32s  w:%d h:%d text: %p\n",
 	(void*)hFont,
     header->fontName,
     header->width,
-    header->height);
+    header->height,
+	message);
     OutputDebugStringA(__fx_debugOut);
-	*/
+	
 	
 	
 	const unsigned char* font = (const unsigned char*)&header->data;
@@ -727,6 +728,7 @@ PGFXRECT AddRect(const char* name, int xPos, int yPos, int width, int height,voi
 	r->parent = NULL;
 	r->clientRect->parent = r;
 	r->wndProc = (void*)(wndProc);
+	r->wndData = NULL;
 
 	if(r->wndProc)
 		((FXWndProc)r->wndProc)(NULL,1,0,0,r);
