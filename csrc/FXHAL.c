@@ -46,13 +46,14 @@ int _fx_cpu_time()
 		PFXHDWMSG m = ((PFXHDWMSG)n->data);
 		if(m)
 		{
+			/*
 			if(m->type!=3)
 			{
 				//_hal_debug_pointer("_fx_hardware_queue data: %p", n);
-				_hal_debug_int("_fx_hardware_queue type: %d", ((PFXHDWMSG)n->data)->type);
+				_hal_debug_int("_fx_hardware_queue type: %d", m->type);
 				_hal_debug_int("_fx_hardware_queue size: %d", ListSize(_fx_hardware_queue));
 			}
-			
+			*/
 			switch(m->type)
 			{
 			case FX_IRQ_MOUSE:
@@ -62,16 +63,34 @@ int _fx_cpu_time()
 				break;
 			case FX_IRQ_MOUSE_L:
 				{
-					
+					if(m->w_data2 == 1)
+						_hal_debug("L MOUSE DOWN\n");
+					else
+						_hal_debug("L MOUSE UP\n");
 				}
 				break;
 			case FX_IRQ_MOUSE_R:
 				{
-					
+					if(m->w_data2 == 1)
+					{
+						_hal_debug("R MOUSE DOWN\n");
+						//AddRect("Workbench", xPos, yPos, 400, 200, (void*)clientProc);
+						//RedrawScreen(hwnd, TRUE);
+					}
+					else
+						_hal_debug("R MOUSE UP\n");
 				}
 				break;				
 			}
 			
+			/*
+			if(_fx_scheduler)
+			{
+				_fx_scheduler();
+			}
+			*/
+
+
 			_fx_last_event = m->type;
 		}
 		DeallocNode(n);

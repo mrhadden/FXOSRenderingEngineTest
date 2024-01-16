@@ -5,7 +5,24 @@
 #include <windows.h>
 #include "GFXRECT.h"
 
-BOOL clientProc(HDC hdc, PGFXRECT winRect);
+typedef struct _pgm_data
+{
+	int nIndex;
+	const char* caption;
+}
+PGMDATA;
 
+typedef struct _ctl_data
+{
+	char text[256];
+}
+CTLDATA;
+
+
+BOOL clientProc1(HDC hdc, int msgId, int wParam, int lParam, PGFXRECT winRect);
+BOOL clientProc2(HDC hdc, int msgId, int wParam, int lParam, PGFXRECT winRect);
+BOOL clientProc3(HDC hdc, int msgId, int wParam, int lParam, PGFXRECT winRect);
+
+BOOL controlProc(HDC hdc, int msgId, int wParam, int lParam, PGFXRECT winRect);
 
 #endif

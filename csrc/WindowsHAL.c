@@ -112,8 +112,8 @@ int _hal_irq_signal(void* pEnv, int eventId, int wParm, long lParm)
 
 			//OutputDebugStringA("_beginthreadex\n");
 			_hal_cpu_thread = (HANDLE)_beginthreadex(NULL, 0, &_hal_cpu_proc, NULL, 
-			                                         CREATE_SUSPENDED, &_hal_cpu_thread_id);
-
+			                                         CREATE_SUSPENDED, 
+													 &_hal_cpu_thread_id);
 			
 			_fx_init_hardware();
 			
@@ -136,7 +136,8 @@ int _hal_irq_signal(void* pEnv, int eventId, int wParm, long lParm)
 			_hal_drv->pDriverData = _fx_ctx->hDC;
 			_fx_env->devdrv       = _hal_drv;		
 			
-			ResumeThread(_hal_cpu_thread);			
+			if(_hal_cpu_thread)
+				ResumeThread(_hal_cpu_thread);			
 		}
 		break;
 	case WM_TIMER:
@@ -165,6 +166,19 @@ int _hal_irq_signal(void* pEnv, int eventId, int wParm, long lParm)
 			_fx_msg.irq = 1;
 			_fx_msg.size = 4;
 			_fx_msg.w_data1 = wParm;
+			_fx_msg.w_data2 = 1;
+			_fx_msg.l_data1 = lParm;
+
+			_fx_irq_signal(_fx_msg.type, &_fx_msg);
+		}
+		break;
+	case WM_LBUTTONUP:
+		{
+			_fx_msg.type = FX_IRQ_MOUSE_L;
+			_fx_msg.irq = 1;
+			_fx_msg.size = 4;
+			_fx_msg.w_data1 = wParm;
+			_fx_msg.w_data2 = 0;
 			_fx_msg.l_data1 = lParm;
 
 			_fx_irq_signal(_fx_msg.type, &_fx_msg);
@@ -176,58 +190,71 @@ int _hal_irq_signal(void* pEnv, int eventId, int wParm, long lParm)
 			_fx_msg.irq = 1;
 			_fx_msg.size = 4;
 			_fx_msg.w_data1 = wParm;
+			_fx_msg.w_data2 = 1;
 			_fx_msg.l_data1 = lParm;
 
 			_fx_irq_signal(_fx_msg.type, &_fx_msg);
 		}
 		break;
-	case WM_MOUSEMOVE:
-	{
-		int xPos = GET_X_LPARAM(lParm);
-		int yPos = GET_Y_LPARAM(lParm);
-
-		_fx_msg.type = FX_IRQ_MOUSE;
-		_fx_msg.irq = 4;
-		_fx_msg.size = 4;
-		_fx_msg.w_data1 = 0;
-		_fx_msg.l_data1 = xPos;
-		_fx_msg.l_data2 = yPos;
-
-		_fx_irq_signal(_fx_msg.type, &_fx_msg);
-
-		/*
-		if(IsDragging(pguiEnv))
+	case WM_RBUTTONUP:
 		{
-			HDC hdc = GetDC(hwnd);
-			if(hdc)
-			{
-				RECT target;
+			_fx_msg.type = FX_IRQ_MOUSE_R;
+			_fx_msg.irq = 1;
+			_fx_msg.size = 4;
+			_fx_msg.w_data1 = wParm;
+			_fx_msg.w_data2 = 0;
+			_fx_msg.l_data1 = lParm;
 
-				DrawFocusRect(hdc, pdragRect);
-
-				yPos = yPos - pguiEnv->state->dragOffset.y;
-				xPos = xPos - pguiEnv->state->dragOffset.x;
-
-				target.top    = yPos;
-				target.left   = xPos;
-				target.bottom = target.top  + pguiEnv->state->focusCurrent->height;
-				target.right  = target.left + pguiEnv->state->focusCurrent->width;
-
-				DrawFocusRect(hdc,&target);
-
-				pdragRect->top    = yPos;
-				pdragRect->left   = xPos;
-				pdragRect->bottom = target.top  + pguiEnv->state->focusCurrent->height;
-				pdragRect->right  = target.left + pguiEnv->state->focusCurrent->width;
-
-
-				ReleaseDC(hwnd, hdc);
-			}
+			_fx_irq_signal(_fx_msg.type, &_fx_msg);
 		}
-		*/
-	}
-	break;
+		break;
 
+	case WM_MOUSEMOVE:
+		{
+			int xPos = GET_X_LPARAM(lParm);
+			int yPos = GET_Y_LPARAM(lParm);
+
+			_fx_msg.type = FX_IRQ_MOUSE;
+			_fx_msg.irq = 4;
+			_fx_msg.size = 4;
+			_fx_msg.w_data1 = 0;
+			_fx_msg.l_data1 = xPos;
+			_fx_msg.l_data2 = yPos;
+
+			_fx_irq_signal(_fx_msg.type, &_fx_msg);
+
+			/*
+			if(IsDragging(pguiEnv))
+			{
+				HDC hdc = GetDC(hwnd);
+				if(hdc)
+				{
+					RECT target;
+
+					DrawFocusRect(hdc, pdragRect);
+
+					yPos = yPos - pguiEnv->state->dragOffset.y;
+					xPos = xPos - pguiEnv->state->dragOffset.x;
+
+					target.top    = yPos;
+					target.left   = xPos;
+					target.bottom = target.top  + pguiEnv->state->focusCurrent->height;
+					target.right  = target.left + pguiEnv->state->focusCurrent->width;
+
+					DrawFocusRect(hdc,&target);
+
+					pdragRect->top    = yPos;
+					pdragRect->left   = xPos;
+					pdragRect->bottom = target.top  + pguiEnv->state->focusCurrent->height;
+					pdragRect->right  = target.left + pguiEnv->state->focusCurrent->width;
+
+
+					ReleaseDC(hwnd, hdc);
+				}
+			}
+			*/
+		}
+		break;
 	};
 	return FALSE;
 

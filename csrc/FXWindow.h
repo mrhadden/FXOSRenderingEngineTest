@@ -68,7 +68,7 @@ typedef const char* HFXFONT;
 
 typedef PGFXRECT (*ApplyWindowAttr)(HDC hdc,PGFXRECT winRect);
 
-typedef BOOL (*FXWndProc)(HDC hdc,PGFXRECT winRect);
+typedef BOOL (*FXWndProc)(HDC hdc,int msgId, int wParam, int lParam,PGFXRECT winRect);
 
 RECT* ToWinRECT(RECT* rect, GFXRECT* grect);
 PGFXRECT FromWinRECT(RECT* rect);
@@ -104,6 +104,8 @@ BOOL IsDblClick(PFXUIENV pguiEnv);
 BOOL MoveRect(PGFXRECT r, int xPos, int yPos);
 
 #define FX_RES_SIG "FXRZ"
+
+void fxSetWindowTitle(PGFXRECT fxRect, const char* title);
 
 HFXFONT LoadFont(const char* fontName);
 HFXRES  LoadResIndirect(const char* type, int width, int height, const char* resName, const char* data, int size);

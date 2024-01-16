@@ -20,6 +20,11 @@ RECT*    pdragRect = NULL;
 PFXDEVDRV       drv;
 PFXGFXFUNCTABLE vid;
 
+
+int pgmIndex = 0;
+//FXWndProc pgms[] = { clientProc1,clientProc2 ,clientProc3 };
+FXWndProc pgms[] = { controlProc };
+
 char debugOut[1024];
 const char* pInstructions = "Right Click to add a Window.  Focus: %p";
 
@@ -113,7 +118,7 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 		{
 			pguiEnv = InitUIEnvironment(sizeof(RECT));
 			pdragRect = (RECT*)pguiEnv->state->driverData;
-			pguiEnv->evtHandler = __irqEventHandler;
+			//pguiEnv->evtHandler = __irqEventHandler;
 			
 			drv = LoadDriver("WindowsVideoDriver");
 			vid = ((PFXGFXFUNCTABLE)drv->pDriverFunctionTable);
@@ -388,7 +393,12 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 			}
 			else
 			{
-				AddRect("Workbench", xPos, yPos, 400,200, (void*)clientProc );
+				//AddRect("Workbench", xPos, yPos, 400,200, (void*)clientProc );
+				//AddRect("Workbench", xPos, yPos, 400, 200, (void*)pgms[pgmIndex++]);
+				AddRect("Workbench", xPos, yPos, 400, 200, (void*)pgms[0]);
+				if(pgmIndex > 2)
+					pgmIndex = 0;
+
 				RedrawScreen(hwnd,TRUE);
 				//sprintf(debugOut,"WM_RBUTTONDOWN x: %d y: %d\n", xPos, yPos);
 				//OutputDebugStringA(debugOut);
@@ -399,7 +409,7 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 		break;
 	case WM_NCMOUSELEAVE:
 		{
-			pguiEnv->evtHandler(pguiEnv,WM_NCMOUSELEAVE,wParam,lParam);
+			//pguiEnv->evtHandler(pguiEnv,WM_NCMOUSELEAVE,wParam,lParam);
 			
 			int xPos = GET_X_LPARAM(lParam); 
 			int yPos = GET_Y_LPARAM(lParam); 
@@ -419,7 +429,20 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
 		}
 		break;
+	case WM_KEYDOWN:
+		{
+			int keycode = wParam;
 
+			sprintf(debugOut, "WM_KEYDOWN x: %d (%d)\n",keycode, (lParam & 0x80000) == 0x80000);
+			OutputDebugStringA(debugOut);
+			if(pguiEnv && pguiEnv->state->focusCurrent)
+			{
+				((FXWndProc)pguiEnv->state->focusCurrent->wndProc)(GetDC(hwnd),2,wParam,0, pguiEnv->state->focusCurrent);
+			}
+
+
+		}
+		break;
     }
 
     return DefWindowProc(hwnd, uMsg, wParam, lParam);

@@ -700,6 +700,12 @@ void RedrawVisible(PFXNODE p)
 	}
 }
 
+void fxSetWindowTitle(PGFXRECT fxRect, const char* title)
+{
+	if(title && fxRect)
+		fxRect->name = title;
+}
+
 PGFXRECT AddRect(const char* name, int xPos, int yPos, int width, int height,void* wndProc)
 {
 	//OutputDebugStringA("AddRect...\n");
@@ -718,7 +724,13 @@ PGFXRECT AddRect(const char* name, int xPos, int yPos, int width, int height,voi
 		-1,
 		FX_ATTR_VISIBLE);
 
+	r->parent = NULL;
+	r->clientRect->parent = r;
 	r->wndProc = (void*)(wndProc);
+
+	if(r->wndProc)
+		((FXWndProc)r->wndProc)(NULL,1,0,0,r);
+
 
 	//VisitList(renderList,Unhighlight);
 	Unhighlight(__fx_penv->renderList);
@@ -776,7 +788,7 @@ VOID DrawRectangles(HDC hdc, PFXNODELIST renderList)
 			if (r->clientRect)
 			{
 				FillRect(hdc, ToWinRECT(&target, r->clientRect), CreateSolidBrush((COLORREF)RGB(255, 255, 255)));
-				((FXWndProc)r->wndProc)(hdc, r->clientRect);
+				((FXWndProc)r->wndProc)(hdc, 0,0,0,r->clientRect);
 			}
 
 			r->attr &= (~FX_ATTR_INVALID);
@@ -792,11 +804,25 @@ VOID DrawRectangles(HDC hdc, PFXNODELIST renderList)
 
 void RedrawScreen(HWND hWnd,BOOL bBackground)
 {
-	HDC hdc = GetDC(hWnd);
-	if (hdc)
+	HDC hdc = NULL;
+	
+	if(__fx_penv)
 	{
-		DrawRectangles(hdc, __fx_penv->renderList);
-		ReleaseDC(hWnd, hdc);
+		if(hWnd)
+		{
+			hdc = GetDC(hWnd);
+		}
+		else
+		{
+			if(__fx_penv->devdrv && __fx_penv->devdrv->pDriverData)
+				hdc = (HDC)__fx_penv->devdrv->pDriverData;
+		}
+
+		if(hdc)
+		{
+			DrawRectangles(hdc, __fx_penv->renderList);
+			ReleaseDC(hWnd, hdc);
+		}
 	}
 }
 

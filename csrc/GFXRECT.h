@@ -37,9 +37,12 @@ typedef struct _fx_rect
 	int   	orgX;
 	int   	orgY;
 	int     szname;
-	PFXNODELIST nonclientList;
+	PFXNODELIST      nonclientList;
+	struct _fx_rect* parent;
 	struct _fx_rect* clientRect;
 	void* wndProc;
+	void* wndData;
+
 } GFXRECT;
 typedef GFXRECT* PGFXRECT;
 
