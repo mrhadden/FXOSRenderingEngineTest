@@ -14,7 +14,7 @@ PGMDATA;
 
 typedef struct _ctl_data
 {
-	char text[256];
+	char text[512];
 }
 CTLDATA;
 

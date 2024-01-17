@@ -271,3 +271,19 @@ void VisitList(PFXNODELIST list, NodeVisit visit)
 		p = p->next;
     }
 }
+
+
+int VisitListCtx(PFXNODELIST list, NodeVisitCtx visit, void* ctx)
+{
+	PFXNODE p = list->head;
+    while(p != NULL) 
+	{
+		int b = visit(p,ctx);
+		if(b)
+		{
+			return b;
+		}	
+		p = p->next;
+    }
+	return 0;
+}

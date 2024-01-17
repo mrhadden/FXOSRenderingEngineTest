@@ -468,7 +468,7 @@ void fxRenderText(HDC hdc,const char* message, int dx, int dy,HFXFONT hFont, COL
 	
 	PHFXRESH header = (PHFXRESH)hFont;
 	
-	
+	/*
 	sprintf(__fx_debugOut,"fxRenderText %p name:%.32s  w:%d h:%d text: %p\n",
 	(void*)hFont,
     header->fontName,
@@ -476,7 +476,7 @@ void fxRenderText(HDC hdc,const char* message, int dx, int dy,HFXFONT hFont, COL
     header->height,
 	message);
     OutputDebugStringA(__fx_debugOut);
-	
+	*/
 	
 	
 	const unsigned char* font = (const unsigned char*)&header->data;
@@ -485,16 +485,25 @@ void fxRenderText(HDC hdc,const char* message, int dx, int dy,HFXFONT hFont, COL
     {
         //const unsigned char* fchar = &font[(*message - 32)*header->width];
 		const unsigned char* fchar = &font[(*message - 32)*header->width];
-
-        for(int y=0;y<header->height;y++)
-        {
-            for(int x=0;x<header->width;x++)
-            {
-                if(((fchar[y]) >> x) & 1)
-                    SetPixel(hdc,dx + c + (header->width - x),dy + y,color);
-            }
-        }
-        c+=header->width;
+		
+		if(*message == 0x0D)
+		{
+			OutputDebugStringA("Encoded RETURN DETECTED!");
+			dy+=(header->height + 1);
+			c = 0;
+		}
+		else
+		{
+			for(int y=0;y<header->height;y++)
+			{
+				for(int x=0;x<header->width;x++)
+				{
+					if(((fchar[y]) >> x) & 1)
+						SetPixel(hdc,dx + c + (header->width - x),dy + y,color);
+				}
+			}
+			c+=header->width;
+		}        
         message++;
     }
 }
@@ -609,6 +618,7 @@ void DebugNode(struct node* p)
 void __Unhighlight(PFXNODE p)
 {
 	GFXRECT* g = (GFXRECT*)p->data;
+	OutputDebugStringA("__Unhighlight\n");
 	g->renderColor = g->color;
 }
 
@@ -701,6 +711,23 @@ void RedrawVisible(PFXNODE p)
 	}
 }
 
+int HasInvalidAttr(PFXNODE p, void* ctx)
+{
+	PGFXRECT r = (PGFXRECT)p->data;
+	
+	if(r->clientRect && ((r->clientRect->attr & FX_ATTR_INVALID) > 0))
+		return TRUE;
+
+	return ((r->attr & FX_ATTR_INVALID) > 0);
+}
+
+
+int IsInvalidRects()
+{
+	return VisitListCtx(__fx_penv->renderList,HasInvalidAttr, NULL);
+}
+
+
 void fxSetWindowTitle(PGFXRECT fxRect, const char* title)
 {
 	if(title && fxRect)
@@ -709,7 +736,7 @@ void fxSetWindowTitle(PGFXRECT fxRect, const char* title)
 
 PGFXRECT AddRect(const char* name, int xPos, int yPos, int width, int height,void* wndProc)
 {
-	//OutputDebugStringA("AddRect...\n");
+	OutputDebugStringA("AddRect...\n");
 
 	PGFXRECT r = AllocRectEx(name, xPos, yPos, width, height, -1, FX_ATTR_VISIBLE);
 	r->szname = strlen(r->name);
@@ -789,7 +816,7 @@ VOID DrawRectangles(HDC hdc, PFXNODELIST renderList)
 
 			if (r->clientRect)
 			{
-				FillRect(hdc, ToWinRECT(&target, r->clientRect), CreateSolidBrush((COLORREF)RGB(255, 255, 255)));
+				//FillRect(hdc, ToWinRECT(&target, r->clientRect), CreateSolidBrush((COLORREF)RGB(255, 255, 255)));
 				((FXWndProc)r->wndProc)(hdc, 0,0,0,r->clientRect);
 			}
 
@@ -932,6 +959,8 @@ BOOL OnCtlClick(int xPos, int yPos)
 {
 	BOOL bRet = FALSE;
 
+	OutputDebugStringA("OnCtlClick\n");
+
 	PFXUIENV pguiEnv = __fx_penv;
 	//PGFXRECT highhit = GetSelectedRect(hitlist,xPos,yPos);
 	PGFXRECT highhit = GetSelectedRect(pguiEnv->renderList, xPos, yPos, FX_ATTR_VISIBLE);
@@ -1015,6 +1044,8 @@ BOOL OnMove(int xPos, int yPos)
 
 	PFXUIENV pguiEnv = __fx_penv;
 
+	char debugOut[256];
+
 	PGFXRECT highhit = GetSelectedRect(pguiEnv->renderList, xPos, yPos, -1);
 	if (highhit != NULL)
 	{
@@ -1025,11 +1056,11 @@ BOOL OnMove(int xPos, int yPos)
 			{
 				//sprintf(debugOut,"FX_MOUSE_LEAVE_1: %s \n",pguiEnv->state->focusHover->name);
 				//OutputDebugStringA(debugOut);
-				pguiEnv->state->focusHover->renderColor = pguiEnv->state->focusHover->color;
+				//pguiEnv->state->focusHover->renderColor = pguiEnv->state->focusHover->color;
 				pguiEnv->state->focusHover = NULL;
 			}
 			pguiEnv->state->focusHover = highhit;
-			pguiEnv->state->focusHover->renderColor = RGB(128, 128, 128);
+			//pguiEnv->state->focusHover->renderColor = RGB(128, 128, 128);
 			//sprintf(debugOut,"FX_MOUSE_ENTER: %s \n",pguiEnv->state->focusHover->name);
 			//OutputDebugStringA(debugOut);
 			bRet = TRUE;

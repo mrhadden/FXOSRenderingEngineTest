@@ -12,6 +12,8 @@
 
 #include "pgm.h"
 
+int isShifted = 0;
+
 
 LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
@@ -136,13 +138,23 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 			
 			//pguiEnv->evtHandler(pguiEnv,uMsg,wParam,lParam);
 			
-			SetTimer(hwnd,1,2000,NULL);		
-			SetTimer(hwnd,2,1,NULL);				
+			//SetTimer(hwnd,1,2000,NULL);	
+			OutputDebugStringA("SET WM_TIMER\n");			
+			SetTimer(hwnd,1,10,NULL);				
 		}
 		break;
 	case WM_TIMER:
 		{
-			//pguiEnv->evtHandler(pguiEnv,uMsg,wParam,lParam);
+			//OutputDebugStringA("WM_TIMER\n");
+			
+			RedrawScreen(hwnd,FALSE);
+			/*
+			if(IsInvalidRects())
+			{
+				RedrawScreen(hwnd,FALSE);
+				//OutputDebugStringA("INVALID RECT DETECTED\n");
+			}
+			*/
 		}
 		break;		
 	case WM_SIZE:
@@ -414,8 +426,8 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 			int xPos = GET_X_LPARAM(lParam); 
 			int yPos = GET_Y_LPARAM(lParam); 
 
-			sprintf(debugOut,"WM_NCMOUSELEAVE x: %d y: %d\n", 
-			        xPos, yPos);
+			//sprintf(debugOut,"WM_NCMOUSELEAVE x: %d y: %d\n", 
+			//        xPos, yPos);
 			//OutputDebugStringA(debugOut);
 
 			if(pguiEnv->state->focusHover)
@@ -429,17 +441,36 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
 		}
 		break;
+	case WM_KEYUP:
+		{
+			if(wParam == VK_SHIFT)
+			{
+				isShifted = 0;
+			}			
+		}
+		break;
 	case WM_KEYDOWN:
 		{
 			int keycode = wParam;
 
-			sprintf(debugOut, "WM_KEYDOWN x: %d (%d)\n",keycode, (lParam & 0x80000) == 0x80000);
-			OutputDebugStringA(debugOut);
-			if(pguiEnv && pguiEnv->state->focusCurrent)
+			//sprintf(debugOut, "WM_KEYDOWN x: %d (%d)\n",keycode, (lParam & 0x80000) == 0x80000);
+			//OutputDebugStringA(debugOut);
+			
+			if(wParam == VK_SHIFT)
 			{
-				((FXWndProc)pguiEnv->state->focusCurrent->wndProc)(GetDC(hwnd),2,wParam,0, pguiEnv->state->focusCurrent);
+				isShifted = 1;
 			}
-
+			else
+			{
+				if(!isShifted)
+					wParam+=32;
+				
+				
+				if(pguiEnv && pguiEnv->state->focusCurrent)
+				{
+					((FXWndProc)pguiEnv->state->focusCurrent->wndProc)(GetDC(hwnd),2,wParam,0, pguiEnv->state->focusCurrent);
+				}
+			}
 
 		}
 		break;

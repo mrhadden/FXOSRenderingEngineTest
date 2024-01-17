@@ -132,6 +132,9 @@ void RedrawRect(HWND hWnd,PFXNODE p);
 void RedrawInvalid(HWND hWnd, PFXNODE p);
 void RedrawVisible(PFXNODE p);
 
+int HasInvalidAttr(PFXNODE p, void* ctx);
+int IsInvalidRects();
+
 VOID DrawRectangles(HDC hdc, PFXNODELIST renderList);
 BOOL OnClick(int xPos, int yPos);
 BOOL OnCtlClick(int xPos, int yPos);

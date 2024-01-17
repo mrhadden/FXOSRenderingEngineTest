@@ -25,6 +25,7 @@ typedef struct node_list
 typedef FXNODELIST* PFXNODELIST;
 
 typedef void (*NodeVisit)(PFXNODE);
+typedef int (*NodeVisitCtx)(PFXNODE,void*);
 
 extern struct node *head;
 extern struct node *current;
@@ -56,5 +57,6 @@ void DeallocNode(PFXNODE node);
 void DeallocList(PFXNODELIST list);
 
 void VisitList(PFXNODELIST list, NodeVisit visit);
+int VisitListCtx(PFXNODELIST list, NodeVisitCtx visit, void* ctx);
 
 #endif

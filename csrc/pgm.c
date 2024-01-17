@@ -212,7 +212,7 @@ BOOL controlProc(HDC hdc, int msgId, int wParam, int lParam, PGFXRECT winRect)
 		if(pd)
 		{
 			memset(pd, 0, sizeof(CTLDATA));
-			strcpy(pd->text,"Sample Text.");
+			strcpy(pd->text,"");
 
 			
 			sprintf(buffer, "CONTROLPROC init RECT: %p  DATA: %p \n", winRect, winRect->wndData);
@@ -223,16 +223,19 @@ BOOL controlProc(HDC hdc, int msgId, int wParam, int lParam, PGFXRECT winRect)
 	}
 	else if(msgId == 2)
 	{
-		sprintf(buffer, "CONTROLPROC MSG2 RECT: %p  DATA: %p \n", winRect, winRect->wndData);
-		OutputDebugStringA(buffer);
+		//sprintf(buffer, "CONTROLPROC MSG2 RECT: %p  DATA: %p \n", winRect, winRect->wndData);
+		//OutputDebugStringA(buffer);
 
 
 
 		if(winRect->wndData)
 		{
 			//sprintf(buffer, "CONTROLPROC MSG PARENT: %p \n", winRect->parent->wndData);
-			sprintf(buffer, "CONTROLPROC MSG2 RECT: %p  DATA: %p \n", winRect, winRect->wndData);
-			OutputDebugStringA(buffer);
+			//sprintf(buffer, "CONTROLPROC MSG2 RECT: %p  DATA: %p \n", winRect, winRect->wndData);
+			//OutputDebugStringA(buffer);
+
+			//sprintf(buffer, "CONTROLPROC KEY: %d \n", wParam);
+			//OutputDebugStringA(buffer);
 
 			CTLDATA* pd = (CTLDATA*)winRect->wndData;
 			if(pd)
@@ -244,24 +247,32 @@ BOOL controlProc(HDC hdc, int msgId, int wParam, int lParam, PGFXRECT winRect)
 				}
 				else
 				{
-					((char*)pd->text)[strlen(pd->text)] = wParam;
+					if(wParam == VK_BACK)
+						((char*)pd->text)[strlen(pd->text) - 1] = 0;
+					if(wParam == VK_RETURN)
+					{
+						OutputDebugStringA("Encoded RETURN...");
+						((char*)pd->text)[strlen(pd->text)] = wParam;
+					}
+					if(wParam > 31)
+						((char*)pd->text)[strlen(pd->text)] = wParam;
 				}
 				
-				OutputDebugStringA(pd->text);
+				//OutputDebugStringA(pd->text);
 				//if(winRect->parent)
 				//	winRect->parent->attr |= FX_ATTR_INVALID;
 				winRect->attr |= FX_ATTR_INVALID;
-				RedrawScreen(NULL,FALSE);
+				//RedrawScreen(NULL,FALSE);
 			}
 		}
 	}
 	else
 	{
-		sprintf(buffer, "CONTROLPROC ELSE MSG: %p \n", winRect->wndData);
-		OutputDebugStringA(buffer);
+		//sprintf(buffer, "CONTROLPROC ELSE MSG: %p \n", winRect->wndData);
+		//OutputDebugStringA(buffer);
 
-		sprintf(buffer, "CONTROLPROC ELSE MSG PARENT: %p \n", winRect->parent->wndData);
-		OutputDebugStringA(buffer);
+		//sprintf(buffer, "CONTROLPROC ELSE MSG PARENT: %p \n", winRect->parent->wndData);
+		//OutputDebugStringA(buffer);
 
 		CTLDATA* pd = NULL;
 
@@ -280,21 +291,23 @@ BOOL controlProc(HDC hdc, int msgId, int wParam, int lParam, PGFXRECT winRect)
 			{
 				ToWinRECT(&target, winRect);
 
+				FillRect(hdc, &target, CreateSolidBrush((COLORREF)RGB(255, 255, 255)));
+
 				if(!hEnvious)
 					hEnvious = LoadFont("font/Hourglass.fnt");
 
-				sprintf(buffer, "CONTROLPROC pd-text: %p \n", pd->text);
-				OutputDebugStringA(buffer);
+				//sprintf(buffer, "CONTROLPROC pd-text: %p \n", pd->text);
+				//OutputDebugStringA(buffer);
 
 				fxRenderText(hdc,
 							 pd->text,
 							 target.left + 1 + FXM_BORDERSIZE,
-							 target.top + 1 + FXM_BORDERSIZE,
+							 target.top  + 1 + FXM_BORDERSIZE,
 							 hEnvious,
 							 (COLORREF)RGB(0, 0, 0));
 
-				sprintf(buffer, "CONTROLPROC fxRenderText: %s \n", pd->text);
-				OutputDebugStringA(buffer);
+				//sprintf(buffer, "CONTROLPROC fxRenderText: %s \n", pd->text);
+				//OutputDebugStringA(buffer);
 			}
 		}
 	}
