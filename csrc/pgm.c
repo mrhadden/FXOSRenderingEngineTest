@@ -248,10 +248,9 @@ BOOL controlProc(HDC hdc, int msgId, int wParam, int lParam, PGFXRECT winRect)
 				}
 				
 				OutputDebugStringA(pd->text);
-				if(winRect->parent)
-					winRect->parent->attr |= FX_ATTR_INVALID;
-				else
-					winRect->attr |= FX_ATTR_INVALID;
+				//if(winRect->parent)
+				//	winRect->parent->attr |= FX_ATTR_INVALID;
+				winRect->attr |= FX_ATTR_INVALID;
 				RedrawScreen(NULL,FALSE);
 			}
 		}
