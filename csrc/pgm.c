@@ -217,8 +217,10 @@ BOOL controlProc(HDC hdc, int msgId, int wParam, int lParam, PGFXRECT winRect)
 			
 			sprintf(buffer, "CONTROLPROC init RECT: %p  DATA: %p \n", winRect, winRect->wndData);
 			OutputDebugStringA(buffer);
-
+			pd->background = 1;
+			
 			//winRect->color = RGB(64, 64, 64);
+
 		}
 	}
 	else if(msgId == 2)
@@ -241,6 +243,7 @@ BOOL controlProc(HDC hdc, int msgId, int wParam, int lParam, PGFXRECT winRect)
 			if(pd)
 			{
 				
+
 				if(strlen(pd->text) == 0)
 				{
 					((char*)pd->text)[0] = wParam;
@@ -248,7 +251,10 @@ BOOL controlProc(HDC hdc, int msgId, int wParam, int lParam, PGFXRECT winRect)
 				else
 				{
 					if(wParam == VK_BACK)
+					{
 						((char*)pd->text)[strlen(pd->text) - 1] = 0;
+						pd->background = 1;
+					}
 					if(wParam == VK_RETURN)
 					{
 						OutputDebugStringA("Encoded RETURN...");
@@ -291,7 +297,11 @@ BOOL controlProc(HDC hdc, int msgId, int wParam, int lParam, PGFXRECT winRect)
 			{
 				ToWinRECT(&target, winRect);
 
-				FillRect(hdc, &target, CreateSolidBrush((COLORREF)RGB(255, 255, 255)));
+				if(pd->background)
+				{
+					pd->background = 0;
+					FillRect(hdc, &target, CreateSolidBrush((COLORREF)RGB(255, 255, 255)));
+				}
 
 				if(!hEnvious)
 					hEnvious = LoadFont("font/Hourglass.fnt");

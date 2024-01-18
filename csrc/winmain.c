@@ -441,6 +441,17 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
 		}
 		break;
+	case WM_CHAR:
+		{
+			//sprintf(debugOut, "WM_CHAR x: %d (%d)\n",wParam, lParam);
+			//OutputDebugStringA(debugOut);	
+
+			if(pguiEnv && pguiEnv->state->focusCurrent)
+			{
+				((FXWndProc)pguiEnv->state->focusCurrent->wndProc)(GetDC(hwnd), 2, wParam, 0, pguiEnv->state->focusCurrent);
+			}
+		}
+		break;
 	case WM_KEYUP:
 		{
 			if(wParam == VK_SHIFT)
@@ -462,14 +473,15 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 			}
 			else
 			{
-				if(!isShifted)
-					wParam+=32;
+				//if(!isShifted)
+				//	wParam+=32;
 				
-				
+				/*
 				if(pguiEnv && pguiEnv->state->focusCurrent)
 				{
 					((FXWndProc)pguiEnv->state->focusCurrent->wndProc)(GetDC(hwnd),2,wParam,0, pguiEnv->state->focusCurrent);
 				}
+				*/
 			}
 
 		}

@@ -15,6 +15,7 @@ PGMDATA;
 typedef struct _ctl_data
 {
 	char text[512];
+	int background;
 }
 CTLDATA;
 
