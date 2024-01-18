@@ -136,6 +136,7 @@ int HasInvalidAttr(PFXNODE p, void* ctx);
 int IsInvalidRects();
 
 VOID DrawRectangles(HDC hdc, PFXNODELIST renderList);
+VOID DrawRectanglesV2(HDC hdc, PFXNODELIST renderList);
 BOOL OnClick(int xPos, int yPos);
 BOOL OnCtlClick(int xPos, int yPos);
 BOOL OnMove(int xPos, int yPos);

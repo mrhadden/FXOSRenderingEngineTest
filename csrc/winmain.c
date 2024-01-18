@@ -199,7 +199,7 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 				SelectObject(hdc, hOldFont);
 				DeleteObject(hFont);
 
-				DrawRectangles(hdc, pguiEnv->renderList);	
+				DrawRectanglesV2(hdc, pguiEnv->renderList);	
 				EndPaint(hwnd, &ps);
 			}
 

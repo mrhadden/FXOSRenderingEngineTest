@@ -9,6 +9,8 @@
 
 #define FX_ATTR_HIDDEN		 0
 #define FX_ATTR_VISIBLE		 2
+#define FX_ATTR_CREATED		 4
+#define FX_ATTR_MOVED        8
 #define FX_ATTR_DESKTOP		 0x8000
 #define FX_ATTR_INVALID		 0x4000
 #define FX_ATTR_ERASE        0x2000
@@ -40,9 +42,9 @@ typedef struct _fx_rect
 	PFXNODELIST      nonclientList;
 	struct _fx_rect* parent;
 	struct _fx_rect* clientRect;
-	void* wndProc;
-	void* wndData;
-
+	void*  			 wndProc;
+	void*  			 wndData;
+	int				 wndInit;    
 } GFXRECT;
 typedef GFXRECT* PGFXRECT;
 

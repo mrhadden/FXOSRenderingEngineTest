@@ -297,7 +297,7 @@ BOOL controlProc(HDC hdc, int msgId, int wParam, int lParam, PGFXRECT winRect)
 			{
 				ToWinRECT(&target, winRect);
 
-				if(pd->background)
+				if(pd->background || (winRect->attr & FX_ATTR_MOVED))
 				{
 					pd->background = 0;
 					FillRect(hdc, &target, CreateSolidBrush((COLORREF)RGB(255, 255, 255)));
