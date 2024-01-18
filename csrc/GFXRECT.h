@@ -11,6 +11,7 @@
 #define FX_ATTR_VISIBLE		 2
 #define FX_ATTR_CREATED		 4
 #define FX_ATTR_MOVED        8
+#define FX_ATTR_BACKGROUND   16
 #define FX_ATTR_DESKTOP		 0x8000
 #define FX_ATTR_INVALID		 0x4000
 #define FX_ATTR_ERASE        0x2000

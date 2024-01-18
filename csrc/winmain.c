@@ -50,9 +50,11 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
 	//pguiEnv = InitUIEnvironment(sizeof(RECT));
 	//pdragRect = (RECT*)pguiEnv->state->driverData;
 
+	/*
 	PFXNODELIST test = AllocListMax("test",256);
 	if(test)
 	{
+		
 		for(int i=0;i<10;i++)
 			ListAddStart(test, (void*)i);
 		int s = ListSize(test);
@@ -77,7 +79,8 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
 		}
 
 	}
-
+	*/
+	
     HWND hwnd = CreateWindowEx(
         0,                              // Optional window styles.
         CLASS_NAME,                     // Window class
@@ -407,7 +410,7 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 			{
 				//AddRect("Workbench", xPos, yPos, 400,200, (void*)clientProc );
 				//AddRect("Workbench", xPos, yPos, 400, 200, (void*)pgms[pgmIndex++]);
-				AddRect("Workbench", xPos, yPos, 400, 200, (void*)pgms[0]);
+				AddRectV2("Workbench", xPos, yPos, 400, 200, (void*)pgms[0]);
 				if(pgmIndex > 2)
 					pgmIndex = 0;
 

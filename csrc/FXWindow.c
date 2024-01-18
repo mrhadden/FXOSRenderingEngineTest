@@ -707,11 +707,16 @@ void RedrawVisible(PFXNODE p)
 {
 	PGFXRECT r = (PGFXRECT)p->data;
 
+	/*
 	if (r->attr & FX_ATTR_VISIBLE)
 	{
 		r->attr |= (FX_ATTR_INVALID);
+		r->attr |= (FX_ATTR_BACKGROUND);
 	}
+	*/
+	fxInvalidateWindow(r,1);
 }
+
 
 int HasInvalidAttr(PFXNODE p, void* ctx)
 {
@@ -780,7 +785,51 @@ PGFXRECT AddRect(const char* name, int xPos, int yPos, int width, int height,voi
 	return r;
 }
 
+PGFXRECT AddRectV2(const char* name, int xPos, int yPos, int width, int height,void* wndProc)
+{
+	OutputDebugStringA("AddRect...\n");
 
+	PGFXRECT r = AllocRectEx(name, xPos, yPos, width, height, -1, FX_ATTR_VISIBLE);
+	r->szname = strlen(r->name);
+	r->color = RGB(125, 125, 125);
+	r->renderColor = RGB(52, 146, 235);
+	r->attr |= FX_ATTR_INVALID;
+	r->attr |= FX_ATTR_MOVED;
+
+	r->clientRect = AllocRectEx(name,
+		xPos + FXM_BORDERSIZE,
+		yPos + (FXM_BORDERSIZE + FXM_TITLEHEIGHT),
+		width - (FXM_BORDERSIZE * 2),
+		height - (FXM_BORDERSIZE + FXM_TITLEHEIGHT + FXM_BORDERSIZE),
+		-1,
+		FX_ATTR_VISIBLE);
+
+	r->parent = NULL;
+	r->clientRect->parent = r;
+	r->wndProc = (void*)(wndProc);
+	r->wndData = NULL;
+	r->wndInit = 0;
+
+	if(r->wndProc)
+		((FXWndProc)r->wndProc)(NULL,1,0,0,r);
+
+
+	//VisitList(renderList,Unhighlight);
+	Unhighlight(__fx_penv->renderList);
+
+	ListAddStart(__fx_penv->knownRects, r);
+	ListAddEnd(__fx_penv->renderList, r);
+
+	//VisitList(renderList,DebugNode);
+	if (__fx_penv->state->focusCurrent)
+	{
+		//__fx_penv->state->focusCurrent->attr |= FX_ATTR_INVALID;
+		fxInvalidateWindow(__fx_penv->state->focusCurrent, 1);
+	}
+	__fx_penv->state->focusCurrent = r;
+
+	return r;
+}
 
 VOID DrawRectangles(HDC hdc, PFXNODELIST renderList)
 {
@@ -836,6 +885,20 @@ VOID DrawRectangles(HDC hdc, PFXNODELIST renderList)
 }
 
 
+VOID fxInvalidateWindow(PGFXRECT r, int bBackground)
+{
+	r->attr |= (FX_ATTR_INVALID);
+	if(r->clientRect)
+		r->clientRect->attr |= (FX_ATTR_INVALID);
+	
+	if(bBackground)
+	{
+		r->attr |= (FX_ATTR_BACKGROUND);
+		if(r->clientRect)
+			r->clientRect->attr |= (FX_ATTR_BACKGROUND);
+	}
+}
+
 VOID DrawRectanglesV2(HDC hdc, PFXNODELIST compatible)
 {
 	RECT target;
@@ -853,7 +916,7 @@ VOID DrawRectanglesV2(HDC hdc, PFXNODELIST compatible)
 		if (!r)
 			break;
 		
-		if ((r->attr & FX_ATTR_VISIBLE) && (r->attr & FX_ATTR_INVALID) &&  (r == currentFocus) && r->wndInit)
+		if ((r->attr & FX_ATTR_VISIBLE) && (r->attr & FX_ATTR_INVALID) && ((r->attr & FX_ATTR_BACKGROUND) == 0) &&  (r == currentFocus) && r->wndInit)
 		{
 			OutputDebugStringA("CURRENT FOCUS UPDATE");
 			if (r->clientRect)
@@ -896,12 +959,12 @@ VOID DrawRectanglesV2(HDC hdc, PFXNODELIST compatible)
 				{
 					//FillRect(hdc, ToWinRECT(&target, r->clientRect), CreateSolidBrush((COLORREF)RGB(255, 255, 255)));
 					((FXWndProc)r->wndProc)(hdc, 0,0,0,r->clientRect);
-					r->clientRect->attr &= (~FX_ATTR_MOVED);
+					r->clientRect->attr &= (~FX_ATTR_BACKGROUND);
 				}
 
 				r->wndInit = 1;
 				//r->attr |= (FX_ATTR_CREATED);
-				r->attr &= (~FX_ATTR_MOVED);
+				r->attr &= (~FX_ATTR_BACKGROUND);
 				r->attr &= (~FX_ATTR_INVALID);
 			}
 			else if (r->attr & FX_ATTR_ERASE)
@@ -969,7 +1032,11 @@ BOOL OnClick(int xPos, int yPos)
 		if (pguiEnv->state->focusCurrent != NULL && pguiEnv->state->focusCurrent != highhit)
 		{
 			pguiEnv->state->focusCurrent->renderColor = pguiEnv->state->focusCurrent->color;
-			pguiEnv->state->focusCurrent->attr |= FX_ATTR_INVALID;
+			//pguiEnv->state->focusCurrent->attr |= FX_ATTR_INVALID;			
+			//pguiEnv->state->focusCurrent->attr |= FX_ATTR_BACKGROUND;
+			
+			fxInvalidateWindow(pguiEnv->state->focusCurrent, 1);
+			
 			OutputDebugStringA("FX_LOST_FOCUS:");
 			OutputDebugStringA(pguiEnv->state->focusCurrent->name);
 		}
@@ -977,6 +1044,7 @@ BOOL OnClick(int xPos, int yPos)
 		highhit->renderColor = RGB(52, 146, 235);
 		highhit->z = NextDepth();
 		highhit->attr |= FX_ATTR_INVALID;
+		highhit->attr |= FX_ATTR_BACKGROUND;
 
 
 		PFXNODE t = ListRemove(pguiEnv->renderList, highhit);
@@ -984,6 +1052,7 @@ BOOL OnClick(int xPos, int yPos)
 		DeallocNode(t);
 
 		pguiEnv->state->focusCurrent = highhit;
+		fxInvalidateWindow(pguiEnv->state->focusCurrent, 1);
 
 		sprintf(__fx_debugOut, "FX_GOT_FOCUS: %s \n", pguiEnv->state->focusCurrent->name);
 		OutputDebugStringA(__fx_debugOut);

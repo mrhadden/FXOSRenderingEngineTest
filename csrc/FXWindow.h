@@ -104,7 +104,7 @@ BOOL IsDblClick(PFXUIENV pguiEnv);
 BOOL MoveRect(PGFXRECT r, int xPos, int yPos);
 
 #define FX_RES_SIG "FXRZ"
-
+VOID fxInvalidateWindow(PGFXRECT r, int bBackground);
 void fxSetWindowTitle(PGFXRECT fxRect, const char* title);
 
 HFXFONT LoadFont(const char* fontName);
@@ -121,6 +121,9 @@ void FXTextOutEx(HDC hdc, const char* message, int dx, int dy,const unsigned cha
 int gettimeofday(struct timeval * tp, struct timezone * tzp);
 
 PGFXRECT AddRect(const char* name, int xPos, int yPos, int width, int height, void* wndProc);
+PGFXRECT AddRectV2(const char* name, int xPos, int yPos, int width, int height, void* wndProc);
+
+
 
 void DebugNode(PFXNODE p);
 void __Unhighlight(PFXNODE p);

@@ -291,13 +291,18 @@ BOOL controlProc(HDC hdc, int msgId, int wParam, int lParam, PGFXRECT winRect)
 			pd = (CTLDATA*)winRect->parent->wndData;
 		}
 
-		if(pd)
+		if(pd && winRect->parent)
 		{
 			if(pd)
 			{
 				ToWinRECT(&target, winRect);
 
-				if(pd->background || (winRect->attr & FX_ATTR_MOVED))
+				//FillRect(hdc, &target, CreateSolidBrush((COLORREF)RGB(255, 255, 255)));
+
+				sprintf(buffer, "CONTROLPROC pd-text: %p \n", pd->text);
+				OutputDebugStringA(buffer);
+
+				if(pd->background || (winRect->attr & FX_ATTR_BACKGROUND))
 				{
 					pd->background = 0;
 					FillRect(hdc, &target, CreateSolidBrush((COLORREF)RGB(255, 255, 255)));
