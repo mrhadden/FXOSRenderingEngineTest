@@ -383,6 +383,8 @@ BOOL MoveRect(PGFXRECT r, int xPos, int yPos )
     }
     r->attr|=FX_ATTR_INVALID;
 	r->attr|=FX_ATTR_MOVED;
+
+	fxInvalidateWindow(r,1);
     //r->attr|=FX_ATTR_ERASE;
 
     return TRUE;
@@ -657,6 +659,7 @@ void MoveFXWindow(HWND hWnd,PFXUIENV pEnv, PGFXRECT p, int xPos, int yPos)
 				if (ol && ((ol->attr & FX_ATTR_DESKTOP) != FX_ATTR_DESKTOP))
 				{
 					ol->attr |= FX_ATTR_INVALID;
+					//fxInvalidateWindow(ol, 1);
 				}
 				node = node->next;
 			}
@@ -665,6 +668,9 @@ void MoveFXWindow(HWND hWnd,PFXUIENV pEnv, PGFXRECT p, int xPos, int yPos)
 
 		FillRect(hdc, ToWinRECT(&target, g), CreateSolidBrush((COLORREF)RGB(64, 64, 64)));
 		MoveRect(g, xPos, yPos);
+
+		fxInvalidateWindow(pEnv->state->focusCurrent,1);
+
 		pEnv->state->focusCurrent = NULL;
 
 		ListAddEnd(pEnv->renderList, g);
