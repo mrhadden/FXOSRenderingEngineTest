@@ -15,3 +15,4 @@ WindowsHAL.c \
 FXHAL.c \
 winmain.c \
 -lgdi32 -o render.exe
+
