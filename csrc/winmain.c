@@ -339,9 +339,20 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 				
 				if(pguiEnv->state->isNonClient)
 				{
-					if(PointInRect((PGFXRECT)pguiEnv->state->focusCurrent->nonclientList->head->data,xPos,yPos ))
+					//if(PointInRect((PGFXRECT)pguiEnv->state->focusCurrent->nonclientList->head->data,xPos,yPos ))
+					
+					if(PointInListEx(pguiEnv->state->focusCurrent->nonclientList,xPos,yPos, NULL))
 					{
 						OutputDebugStringA("OnClick NON-CLIENT CLOSE");
+						
+						/*
+						int t= PointInList(pguiEnv->state->focusCurrent->nonclientList,xPos,yPos);
+						if(t)
+						{
+							OutputDebugStringA("OnClick NON-CLIENT POINT IN LIST!");
+						}
+						*/
+						
 						if(OnCtlClick(xPos,yPos))
 						{
 							RedrawScreen(hwnd,FALSE);

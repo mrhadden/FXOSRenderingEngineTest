@@ -17,6 +17,14 @@
 #define FX_ATTR_ERASE        0x2000
 #define FX_ATTR_DELETE       0x1000
 
+
+#define MAX_GADGETS			(8)
+#define FX_GADGET_TITLE     (0x00)
+#define FX_GADGET_CLOSE     (0x01)
+#define FX_GADGET_SIZE      (0x02)
+#define FX_GADGET_MIN       (0x03)
+#define FX_GADGET_MAX       (0x04)
+
 typedef struct _fx_rect_region
 {
 	int 	x;
@@ -41,6 +49,7 @@ typedef struct _fx_rect
 	int   	orgY;
 	int     szname;
 	PFXNODELIST      nonclientList;
+	struct _fx_rect* gadgets[MAX_GADGETS]; 
 	struct _fx_rect* parent;
 	struct _fx_rect* clientRect;
 	void*  			 wndProc;
@@ -48,6 +57,16 @@ typedef struct _fx_rect
 	int				 wndInit;    
 } GFXRECT;
 typedef GFXRECT* PGFXRECT;
+
+typedef struct _fx_rect_hit
+{
+	int 		dx;
+	int 		dy;
+	PGFXRECT 	pRect;
+} GRECTHIT;
+typedef GRECTHIT* PGRECTHIT;
+
+
 
 PGFXRECT AllocRect(const char* name, int x,int y,int width,int height);
 PGFXRECT AllocRectEx(const char* name, int x,int y,int width,int height,long z,int attr);

@@ -15,7 +15,7 @@ char __fx_debugOut[256];
 
 PFXUIENV __fx_penv = NULL;
 
-ApplyWindowAttr fApplyChrome[] = { AddCloseGadget,AddTitleBarGadget,AddTitleGadget,NULL };
+ApplyWindowAttr fApplyChrome[] = {AddCloseGadget,AddTitleBarGadget,AddTitleGadget,AddSizerGadget,NULL};
 
 PFXUIENV InitUIEnvironment(int drvDataSize)
 {
@@ -69,7 +69,29 @@ PGFXRECT FromWinRECT(RECT* rect)
 	return AllocRect(NULL,rect->left,rect->top,rect->right - rect->left,rect->bottom - rect->top);
 }
 
-PGFXRECT AddCloseGadget(HDC hdc,PGFXRECT winRect)
+
+PGFXRECT AddSizerGadget(HDC hdc,PGFXRECT winRect,PGFXRECT gadget)
+{
+	RECT target;
+	
+	if(!hdc)
+	{
+		winRect->gadgets[FX_GADGET_SIZE] =  AllocRect(NULL, 
+		                 target.right - FXM_BORDERSIZE,
+		                 target.top   - FXM_BORDERSIZE,
+						 FXM_BORDERSIZE,
+						 FXM_BORDERSIZE );
+		return winRect->gadgets[FX_GADGET_SIZE];
+	}
+	else
+	{
+		UpdateRect(winRect->gadgets[FX_GADGET_SIZE],
+		           target.left,target.top,
+				   target.right - target.left,target.bottom - target.top);
+	}
+}
+
+PGFXRECT AddCloseGadget(HDC hdc,PGFXRECT winRect,PGFXRECT gadget)
 {
     //OutputDebugStringA("AddCloseGadget...\n");
     RECT target;
@@ -81,13 +103,22 @@ PGFXRECT AddCloseGadget(HDC hdc,PGFXRECT winRect)
     
 	if(!hdc)
 	{
-		return AllocRect(NULL, target.left,target.top,target.right - target.left ,target.bottom - target.top );
+		winRect->gadgets[FX_GADGET_CLOSE] = AllocRect(NULL, target.left,target.top,target.right - target.left ,target.bottom - target.top );
+		return winRect->gadgets[FX_GADGET_CLOSE];
+		//return AllocRect(NULL, target.left,target.top,target.right - target.left ,target.bottom - target.top );
 	}
 	else
 	{
+		UpdateRect(winRect->gadgets[FX_GADGET_CLOSE],
+		           target.left,target.top,
+				   target.right - target.left,target.bottom - target.top);
+
+		/*
+		// hack method
 		UpdateRect((PGFXRECT)winRect->nonclientList->head->data,
 		           target.left,target.top,
 				   target.right - target.left,target.bottom - target.top);
+		*/
 	}
 	/*
     sprintf(debugOut,"NON-CLIENT CLICK x: %d y: %d w: %d h: %d \n", 
@@ -112,7 +143,7 @@ PGFXRECT AddCloseGadget(HDC hdc,PGFXRECT winRect)
     return NULL;
 }
 
-PGFXRECT AddTitleBarGadget(HDC hdc, PGFXRECT winRect)
+PGFXRECT AddTitleBarGadget(HDC hdc, PGFXRECT winRect,PGFXRECT gadget)
 {
     //OutputDebugStringA("AddCloseGadget...\n");
     RECT target;
@@ -132,7 +163,7 @@ PGFXRECT AddTitleBarGadget(HDC hdc, PGFXRECT winRect)
     return NULL;
 }
 
-PGFXRECT AddTitleGadget(HDC hdc, PGFXRECT winRect)
+PGFXRECT AddTitleGadget(HDC hdc, PGFXRECT winRect,PGFXRECT gadget)
 {
     RECT target;
 	RECT title;
@@ -740,6 +771,43 @@ int IsInvalidRects()
 	return VisitListCtx(__fx_penv->renderList,HasInvalidAttr, NULL);
 }
 
+int __PointInList(PFXNODE p, void* ctx)
+{
+	return PointInRect((PGFXRECT)p->data,((PFXPOINT)ctx)->x,((PFXPOINT)ctx)->y);
+}
+
+int __PointInListEx(PFXNODE p, void* ctx)
+{
+	BOOL bRet = PointInRect((PGFXRECT)p->data,((PGRECTHIT)ctx)->dx,((PGRECTHIT)ctx)->dy);
+
+	if(bRet)
+		((PGRECTHIT)ctx)->pRect = (PGFXRECT)p->data;
+
+	return bRet;
+}
+
+
+int PointInList(PFXNODELIST pList,int x, int y)
+{
+	FXPOINT point;
+	point.x = x ;
+	point.y = y;
+	return VisitListCtx(pList,__PointInList, &point);
+}
+
+int PointInListEx(PFXNODELIST pList, int x, int y, PGFXRECT* pFound)
+{
+	GRECTHIT hit;
+	hit.dx = x ;
+	hit.dy = y;
+	
+	BOOL bRet = VisitListCtx(pList,__PointInListEx, &hit);
+	if(bRet && pFound)
+		*pFound = hit.pRect;
+	
+	return bRet;
+}
+
 
 void fxSetWindowTitle(PGFXRECT fxRect, const char* title)
 {
@@ -859,7 +927,7 @@ VOID DrawRectangles(HDC hdc, PFXNODELIST renderList)
 				r->nonclientList = AllocList();
 				while (fApplyChrome[i])
 				{
-					PGFXRECT rc = fApplyChrome[i++](NULL, r);
+					PGFXRECT rc = fApplyChrome[i++](NULL, r, NULL);
 					if (rc)
 					{
 						ListAddStart(r->nonclientList, rc);
@@ -870,7 +938,7 @@ VOID DrawRectangles(HDC hdc, PFXNODELIST renderList)
 			i = 0;
 			while (fApplyChrome[i])
 			{
-				PGFXRECT rc = fApplyChrome[i++](hdc, r);
+				PGFXRECT rc = fApplyChrome[i++](hdc, r, NULL);
 			}
 
 			if (r->clientRect)
@@ -947,7 +1015,7 @@ VOID DrawRectanglesV2(HDC hdc, PFXNODELIST compatible)
 					r->nonclientList = AllocList();
 					while (fApplyChrome[i])
 					{
-						PGFXRECT rc = fApplyChrome[i++](NULL, r);
+						PGFXRECT rc = fApplyChrome[i++](NULL, r, NULL);
 						if (rc)
 						{
 							ListAddStart(r->nonclientList, rc);
@@ -958,7 +1026,7 @@ VOID DrawRectanglesV2(HDC hdc, PFXNODELIST compatible)
 				i = 0;
 				while (fApplyChrome[i])
 				{
-					PGFXRECT rc = fApplyChrome[i++](hdc, r);
+					PGFXRECT rc = fApplyChrome[i++](hdc, r, NULL);
 				}
 
 				if (r->clientRect)

@@ -66,17 +66,22 @@ typedef const char* HFXFONT;
 #define FXM_TITLEHEIGHT     18
 #define FXM_TRIMHEIGHT      16
 
-typedef PGFXRECT (*ApplyWindowAttr)(HDC hdc,PGFXRECT winRect);
+//typedef PGFXRECT (*ApplyWindowAttr)(HDC hdc,PGFXRECT winRect);
+typedef PGFXRECT (*ApplyWindowAttr)(HDC hdc,PGFXRECT winRect, PGFXRECT gadget);
 
 typedef BOOL (*FXWndProc)(HDC hdc,int msgId, int wParam, int lParam,PGFXRECT winRect);
 
 RECT* ToWinRECT(RECT* rect, GFXRECT* grect);
 PGFXRECT FromWinRECT(RECT* rect);
-
-PGFXRECT AddCloseGadget(HDC hdc,PGFXRECT winRect);
-PGFXRECT AddTitleBarGadget(HDC hdc,PGFXRECT winRect);
-PGFXRECT AddTitleGadget(HDC hdc,PGFXRECT winRect);
-
+//
+//  Standard Gadget Functions
+//
+PGFXRECT AddCloseGadget(HDC hdc,PGFXRECT winRect,PGFXRECT);
+PGFXRECT AddTitleBarGadget(HDC hdc,PGFXRECT winRect,PGFXRECT);
+PGFXRECT AddTitleGadget(HDC hdc,PGFXRECT winRect,PGFXRECT);
+PGFXRECT AddSizerGadget(HDC hdc,PGFXRECT winRect,PGFXRECT);
+//
+//
 typedef struct _fx_window
 {
     PGFXRECT    winRect;
@@ -129,6 +134,9 @@ void DebugNode(PFXNODE p);
 void __Unhighlight(PFXNODE p);
 void Unhighlight(PFXNODELIST renderList);
 
+
+int PointInList(PFXNODELIST pList,int x, int y);
+int PointInListEx(PFXNODELIST pList, int x, int y, PGFXRECT* pFound);
 
 void RedrawScreen(HWND hWnd, BOOL bBackground);
 void RedrawRect(HWND hWnd,PFXNODE p);
