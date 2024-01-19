@@ -659,7 +659,7 @@ void MoveFXWindow(HWND hWnd,PFXUIENV pEnv, PGFXRECT p, int xPos, int yPos)
 				if (ol && ((ol->attr & FX_ATTR_DESKTOP) != FX_ATTR_DESKTOP))
 				{
 					ol->attr |= FX_ATTR_INVALID;
-					//fxInvalidateWindow(ol, 1);
+					fxInvalidateWindow(ol, 1);
 				}
 				node = node->next;
 			}
@@ -1169,7 +1169,7 @@ BOOL OnCtlClick(int xPos, int yPos)
 				if (ol && ((ol->attr & FX_ATTR_DESKTOP) != FX_ATTR_DESKTOP))
 				{
 					ol->attr |= FX_ATTR_INVALID;
-
+					fxInvalidateWindow(ol,1);
 					//sprintf(debugOut,"\tOverlap: %s\n", ol->name);
 					//OutputDebugStringA(debugOut);
 
