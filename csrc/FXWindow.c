@@ -89,6 +89,8 @@ PGFXRECT AddSizerGadget(HDC hdc,PGFXRECT winRect,PGFXRECT gadget)
 		           target.left,target.top,
 				   target.right - target.left,target.bottom - target.top);
 	}
+
+	return NULL;
 }
 
 PGFXRECT AddCloseGadget(HDC hdc,PGFXRECT winRect,PGFXRECT gadget)
