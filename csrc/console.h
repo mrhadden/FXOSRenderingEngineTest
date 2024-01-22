@@ -11,6 +11,8 @@ typedef struct _fx_text_metrics
 	int mode;
 	int rows;
 	int columns;
+	int cursor_row;
+	int cursor_col;
 	char* textBuffer;
 }FXTEXTMETRICS;
 typedef FXTEXTMETRICS* PFXTEXTMETRICS;
@@ -19,6 +21,7 @@ typedef PFXTEXTMETRICS (*funcGetTextMetrics)(PFXTEXTMETRICS);
 typedef void(*funcClearScreen)(void);
 typedef void(*funcSetTextMode)(int);
 typedef void(*funcSetChar)(int charCode, int row, int col);
+typedef void(*funcNextChar)(int charCode);
 
 #define TEXTMODE_40X25 (1)
 #define TEXTMODE_80X25 (2)
@@ -31,10 +34,13 @@ typedef struct _fx_console_library
 	funcClearScreen		ClearScreen;
 	funcSetChar			SetChar;
 	funcGetTextMetrics	GetTextMetrics;
+	funcNextChar		NextChar;
 }CONSOLE_LIBRARY;
 typedef CONSOLE_LIBRARY* CONSOLE;
 
 extern char* _fx_screen_buffer;
+
+void _console_flash_cursor();
 
 /*
 typedef struct  _fx_console_library_internal

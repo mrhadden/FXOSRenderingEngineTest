@@ -498,6 +498,51 @@ void UnloadFont(HFXFONT hFont)
 		free((char*)hFont);
 }
 
+void fxRenderChars(HDC hdc,const char* message,int length ,int dx, int dy,HFXFONT hFont, COLORREF color)
+{
+    int c = 0;
+	
+	PHFXRESH header = (PHFXRESH)hFont;
+	
+	/*
+	sprintf(__fx_debugOut,"fxRenderText %p name:%.32s  w:%d h:%d text: %p\n",
+	(void*)hFont,
+    header->fontName,
+    header->width,
+    header->height,
+	message);
+    OutputDebugStringA(__fx_debugOut);
+	*/
+	
+	
+	const unsigned char* font = (const unsigned char*)&header->data;
+	
+    while(*message && length--)
+    {
+        //const unsigned char* fchar = &font[(*message - 32)*header->width];
+		const unsigned char* fchar = &font[(*message - 32)*header->width];
+		
+		if(*message == 0x0D)
+		{
+			OutputDebugStringA("Encoded RETURN DETECTED!");
+			dy+=(header->height + 1);
+			c = 0;
+		}
+		else
+		{
+			for(int y=0;y<header->height;y++)
+			{
+				for(int x=0;x<header->width;x++)
+				{
+					if(((fchar[y]) >> x) & 1)
+						SetPixel(hdc,dx + c + (header->width - x),dy + y,color);
+				}
+			}
+			c+=header->width;
+		}        
+        message++;
+    }
+}
 
 void fxRenderText(HDC hdc,const char* message, int dx, int dy,HFXFONT hFont, COLORREF color)
 {

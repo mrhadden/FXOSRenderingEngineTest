@@ -34,6 +34,8 @@ FXWndProc pgms[] = { controlProc };
 char debugOut[1024];
 const char* pInstructions = "Right Click to add a Window.  Focus: %p";
 
+HFXFONT hfx = NULL;
+
 int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine, int nCmdShow)
 {
 	const wchar_t* CLASS_NAME  = L"Sample Window Class";
@@ -84,13 +86,15 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
 
 	}
 	*/
+	hfx = LoadFont(NULL);
 	
 	console = (CONSOLE)fxLoadLibrary("console");
 	sprintf(debugOut,"CONSOLE LIBRARY: %p\n", console);
 	OutputDebugStringA(debugOut);
 
 	console->ClearScreen();
-	console->SetTextMode(TEXTMODE_40X25);
+	//console->SetTextMode(TEXTMODE_40X25);
+	console->SetTextMode(TEXTMODE_80X50);
 	/*
 	for(int c = 0;c < 25;c++)
 		console->SetChar((char)(65 + c), c, 0);
@@ -98,11 +102,13 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
 	for(int c = 0;c<40;c++)
 		console->SetChar((char)(65+c), 0, c);
 	*/
-	console->SetChar('A', 0, 0);
-	console->SetChar('B', 0, 39);
-	console->SetChar('C', 24, 0);
-
-	console->SetChar('X', 24, 39);
+	FXTEXTMETRICS metrics;
+	console->GetTextMetrics(&metrics);
+		
+	console->SetChar('1', 0, 0);
+	console->SetChar('2', 0, metrics.columns - 1);
+	console->SetChar('3', metrics.rows - 1, 0);
+	console->SetChar('4', metrics.rows - 1, metrics.columns - 1);
 	console->ClearScreen();
 
 	fxUnloadLibrary((HANDLE)console);
@@ -171,14 +177,53 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 			
 			//SetTimer(hwnd,1,2000,NULL);	
 			OutputDebugStringA("SET WM_TIMER\n");			
-			SetTimer(hwnd,1,10,NULL);				
+			SetTimer(hwnd,1,700,NULL);				
 		}
 		break;
 	case WM_TIMER:
 		{
 			//OutputDebugStringA("WM_TIMER\n");
 			
-			RedrawScreen(hwnd,FALSE);
+			_console_flash_cursor();
+			
+			FXTEXTMETRICS metrics;
+				
+			console->GetTextMetrics(&metrics);
+
+			RECT client;
+			GetClientRect(hwnd,&client);
+				
+			int fw = (client.right - client.left ) / metrics.columns;// 32 ;
+			int fh = (client.bottom - client.top ) / metrics.rows;
+			
+			HDC hdc = GetDC(hwnd);
+			if(hdc)
+			{	
+				/*
+				fxRenderChars(hdc,
+				              &(metrics.textBuffer[metrics.cursor_row * metrics.columns]),
+							  metrics.cursor_col + 1,
+				              5, 5 + (fh * metrics.cursor_row),
+							  hfx,
+							  RGB(255,255,255));
+				*/			  
+				fxRenderChars(hdc,
+				              &(metrics.textBuffer[0]),
+							  1,
+				              5, 5,
+							  hfx,
+							  RGB(255,255,255));
+
+
+				ReleaseDC(hwnd,hdc);
+			}
+			
+			char text[256];
+			sprintf(text,"CURSOR:%d,%d (%d)",metrics.cursor_row,metrics.cursor_col,metrics.cursor_row * metrics.columns);
+			OutputDebugStringA(text);
+			
+			//InvalidateRect(hwnd, NULL, TRUE);
+			//RedrawScreen(hwnd,FALSE);
 			/*
 			if(IsInvalidRects())
 			{
@@ -211,8 +256,15 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
             HDC hdc = BeginPaint(hwnd, &ps);
 			if(hdc)
 			{
-				int fh = 32;
-				int fw = fh;
+				FXTEXTMETRICS metrics;
+				
+				console->GetTextMetrics(&metrics);
+				
+				RECT client;
+				GetClientRect(hwnd,&client);
+				
+				int fw = (client.right - client.left ) / metrics.columns;// 32 ;
+				int fh = (client.bottom - client.top ) / metrics.rows;
 							                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       				FillRect(hdc, &ps.rcPaint, CreateSolidBrush((COLORREF)RGB(64, 64, 64)));
 
 				HFONT hFont = CreateFontA(fh, fw, 0, 0, FW_NORMAL,
@@ -229,16 +281,19 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
 				//TextOutA(hdc,10,10,text,strlen(text));
 				
-				char buffer[256];
-				FXTEXTMETRICS metrics;
-				console->GetTextMetrics(&metrics);
+				char buffer[metrics.columns];
+				
+				
 				if(metrics.textBuffer)
 				{
 					for(int r = 0;r < metrics.rows;r++)
 					{
-						memset(buffer, 0, 256);
+						memset(buffer, 0, metrics.columns);
 						memcpy(buffer,&(metrics.textBuffer[(r * metrics.columns)]),metrics.columns);	
-						TextOutA(hdc, 10, 10 + (fh * r), buffer, metrics.columns);
+						//TextOutA(hdc, 5, 5 + (fh * r), buffer, metrics.columns);
+						
+						fxRenderChars(hdc,buffer,metrics.columns,5, 5 + (fh * r),hfx,RGB(255,255,255));
+						
 					}
 				}
 
@@ -502,11 +557,14 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 		{
 			//sprintf(debugOut, "WM_CHAR x: %d (%d)\n",wParam, lParam);
 			//OutputDebugStringA(debugOut);	
-
+			console->NextChar(wParam);
+			InvalidateRect(hwnd, NULL, TRUE);	
+			/*
 			if(pguiEnv && pguiEnv->state->focusCurrent)
 			{
 				((FXWndProc)pguiEnv->state->focusCurrent->wndProc)(GetDC(hwnd), 2, wParam, 0, pguiEnv->state->focusCurrent);
 			}
+			*/
 		}
 		break;
 	case WM_KEYUP:
