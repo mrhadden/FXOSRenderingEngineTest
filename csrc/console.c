@@ -82,7 +82,7 @@ void _console_flash_cursor()
 	if(_fx_screen_buffer)
 	{
 		if(_fx_screen_cursor_state)
-			_console_set_char('#',_fx_screen_cur_row,_fx_screen_cur_col);
+			_console_set_char(' ',_fx_screen_cur_row,_fx_screen_cur_col);
 		else
 			_console_set_char('_',_fx_screen_cur_row,_fx_screen_cur_col);
 		
@@ -94,7 +94,7 @@ void _console_flash_cursor()
 
 void _console_next_char(int charCode)
 {
-	OutputDebugStringA("_console_next_char()");
+	//OutputDebugStringA("_console_next_char()");
 
 	if(_fx_screen_buffer)
 	{	

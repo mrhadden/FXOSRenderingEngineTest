@@ -186,6 +186,7 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 			
 			_console_flash_cursor();
 			
+			/*
 			FXTEXTMETRICS metrics;
 				
 			console->GetTextMetrics(&metrics);
@@ -199,30 +200,24 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 			HDC hdc = GetDC(hwnd);
 			if(hdc)
 			{	
-				/*
 				fxRenderChars(hdc,
 				              &(metrics.textBuffer[metrics.cursor_row * metrics.columns]),
 							  metrics.cursor_col + 1,
 				              5, 5 + (fh * metrics.cursor_row),
 							  hfx,
-							  RGB(255,255,255));
-				*/			  
-				fxRenderChars(hdc,
-				              &(metrics.textBuffer[0]),
-							  1,
-				              5, 5,
-							  hfx,
-							  RGB(255,255,255));
+							  RGB(255,255,255),
+					          RGB(64, 64, 64));
+
 
 
 				ReleaseDC(hwnd,hdc);
 			}
+			*/
+			//char text[256];
+			//sprintf(text,"CURSOR:%d,%d (%d)",metrics.cursor_row,metrics.cursor_col,metrics.cursor_row * metrics.columns);
+			//OutputDebugStringA(text);
 			
-			char text[256];
-			sprintf(text,"CURSOR:%d,%d (%d)",metrics.cursor_row,metrics.cursor_col,metrics.cursor_row * metrics.columns);
-			OutputDebugStringA(text);
-			
-			//InvalidateRect(hwnd, NULL, TRUE);
+			InvalidateRect(hwnd, NULL, TRUE);
 			//RedrawScreen(hwnd,FALSE);
 			/*
 			if(IsInvalidRects())
@@ -292,7 +287,7 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 						memcpy(buffer,&(metrics.textBuffer[(r * metrics.columns)]),metrics.columns);	
 						//TextOutA(hdc, 5, 5 + (fh * r), buffer, metrics.columns);
 						
-						fxRenderChars(hdc,buffer,metrics.columns,5, 5 + (fh * r),hfx,RGB(255,255,255));
+						fxRenderChars(hdc,buffer,metrics.columns,5, 5 + (fh * r),hfx,RGB(255,255,255), RGB(64,64,64));
 						
 					}
 				}

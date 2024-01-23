@@ -117,7 +117,7 @@ HFXRES  LoadResIndirect(const char* type, int width, int height, const char* res
 const char* GetFontName(HFXFONT hFont);
 void  UnloadFont(HFXFONT hFont);
 void fxRenderText(HDC hdc,const char* message, int dx, int dy,HFXFONT hFont, COLORREF color);
-void fxRenderChars(HDC hdc,const char* message,int length ,int dx, int dy,HFXFONT hFont, COLORREF color);
+void fxRenderChars(HDC hdc,const char* message,int length ,int dx, int dy,HFXFONT hFont, COLORREF color, COLORREF);
 
 void MoveFXWindow(HWND hWnd,PFXUIENV pEnv, PGFXRECT p, int xPos, int yPos);
 

@@ -498,7 +498,7 @@ void UnloadFont(HFXFONT hFont)
 		free((char*)hFont);
 }
 
-void fxRenderChars(HDC hdc,const char* message,int length ,int dx, int dy,HFXFONT hFont, COLORREF color)
+void fxRenderChars(HDC hdc,const char* message,int length ,int dx, int dy,HFXFONT hFont, COLORREF color, COLORREF background)
 {
     int c = 0;
 	
@@ -536,6 +536,8 @@ void fxRenderChars(HDC hdc,const char* message,int length ,int dx, int dy,HFXFON
 				{
 					if(((fchar[y]) >> x) & 1)
 						SetPixel(hdc,dx + c + (header->width - x),dy + y,color);
+					//else
+					//	SetPixel(hdc, dx + c + (header->width - x), dy + y, background);
 				}
 			}
 			c+=header->width;
