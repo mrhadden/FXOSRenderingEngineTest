@@ -15,11 +15,15 @@ RECT*    		_hal_rect = NULL;
 PFXDEVDRV   	_hal_drv  = NULL;
 PFXGFXFUNCTABLE _hal_vid  = NULL;
 
+PFXDEVDRV		_hal_driver_table[16];
+
+
 CRITICAL_SECTION _hal_queue_cs;
 
-HANDLE   _hal_cpu_thread;
-unsigned _hal_cpu_thread_id;
+HANDLE   _hal_cpu_thread = NULL;
+unsigned _hal_cpu_thread_id = 0;
 
+PHALWINENV _hal_windows_environment = NULL;
 
 char _hal_debug_buffer[256];
 
@@ -71,7 +75,7 @@ void drvRedrawScreen(PFXUIENV env, BOOL bBackground)
 
 unsigned __stdcall _hal_cpu_proc(LPVOID lpParameter)
 {
-	OutputDebugStringA("CpuThreadProc enter...");
+	OutputDebugStringA("_hal_cpu_proc enter...");
 	while(TRUE)
 	{
 		_hal_cpu_time();
@@ -101,12 +105,19 @@ int _hal_irq_signal(void* pEnv, int eventId, int wParm, long lParm)
 
 
 	//PFXUIENV pguiEnv = (PFXUIENV)pEnv;
-
 	switch(eventId)
 	{
 	case WM_CREATE:
 		{
-			OutputDebugStringA("HAL CREATE...");
+			OutputDebugStringA("HAL WM_CREATE...");
+			
+			_hal_windows_environment = (PHALWINENV)pEnv;
+
+			memset(_hal_driver_table,0,sizeof(PFXDEVDRV) * 16);
+
+			char debug[256];
+			sprintf(debug,"_hal_windows_environment->hWnd %p\n",_hal_windows_environment->hWnd);
+			OutputDebugStringA(debug);
 			
 			InitializeCriticalSection(&_hal_queue_cs);
 
@@ -115,36 +126,58 @@ int _hal_irq_signal(void* pEnv, int eventId, int wParm, long lParm)
 			                                         CREATE_SUSPENDED, 
 													 &_hal_cpu_thread_id);
 			
-			_fx_init_hardware();
+			_fx_init_hardware(FALSE);
 			
 			_fx_env   = InitUIEnvironment(sizeof(RECT));
 			_hal_rect = (RECT*)_fx_env->state->driverData;
 			
 			_fx_env->evtHandler = _hal_irq_signal;
 			
+			OutputDebugStringA("LoadDriver(WindowsVideoDriver)");
 			_hal_drv = LoadDriver("WindowsVideoDriver");
+			_hal_drv->pDriverData = (void*)_hal_windows_environment->hWnd;
+			
+			_hal_driver_table[_hal_drv->type] = _hal_drv;
+			
 			_hal_vid = ((PFXGFXFUNCTABLE)_hal_drv->pDriverFunctionTable);
 			if(_hal_vid)
 			{
+				OutputDebugStringA("Loaded(WindowsVideoDriver)");
 				_hal_vid->Info(NULL, NULL);
 				_hal_vid->Initialize(NULL, NULL);
 				_hal_vid->Uninitialize(NULL, NULL);
 				_hal_vid->BitBlt(NULL, NULL);
-				_hal_vid->DrawFillRect(NULL, NULL);
 				_hal_vid->DrawRect(NULL, NULL);
 			}
-			_hal_drv->pDriverData = _fx_ctx->hDC;
+			OutputDebugStringA("Table Set(WindowsVideoDriver)");
+			
 			_fx_env->devdrv       = _hal_drv;		
 			
+			OutputDebugStringA("ResumeThread _hal_cpu_thread...");
+
 			if(_hal_cpu_thread)
-				ResumeThread(_hal_cpu_thread);			
+				ResumeThread(_hal_cpu_thread);	
+
+			_fx_enable_interrupts(TRUE);
 		}
 		break;
 	case WM_TIMER:
 		{
+			//OutputDebugStringA("HAL TICK...");
+			
 			_timer_count[wParm]++;
 
-			//OutputDebugStringA("HAL TICK...");
+			/*
+			RECT r;
+			
+			r.top = 0;
+			r.left = 0;
+			r.bottom = 100;
+			r.right = 100;
+			
+			_hal_vid->DrawFillRect(_hal_drv,&r,RGB(128,128,0));
+			*/
+			
 			if(wParm == 2)
 			{
 				//_fx_cpu_time();
@@ -255,7 +288,22 @@ int _hal_irq_signal(void* pEnv, int eventId, int wParm, long lParm)
 			*/
 		}
 		break;
+	case WM_CHAR:
+		{
+			_fx_msg.type = FX_IRQ_KEYBOARD;
+			_fx_msg.irq = 2;
+			_fx_msg.size = 4;
+			_fx_msg.w_data1 = wParm;
+			_fx_msg.l_data1 = 0;
+			_fx_msg.l_data2 = 0;
+
+			_fx_irq_signal(_fx_msg.type, &_fx_msg);		
+		}
+		break;
 	};
+	
+	
+	
 	return FALSE;
 
 }

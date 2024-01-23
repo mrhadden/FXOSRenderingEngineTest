@@ -535,9 +535,9 @@ void fxRenderChars(HDC hdc,const char* message,int length ,int dx, int dy,HFXFON
 				for(int x=0;x<header->width;x++)
 				{
 					if(((fchar[y]) >> x) & 1)
-						SetPixel(hdc,dx + c + (header->width - x),dy + y,color);
+						SetPixelV(hdc,dx + c + (header->width - x),dy + y,color);
 					//else
-					//	SetPixel(hdc, dx + c + (header->width - x), dy + y, background);
+				//		SetPixelV(hdc, dx + c + (header->width - x), dy + y, background);
 				}
 			}
 			c+=header->width;
@@ -583,7 +583,7 @@ void fxRenderText(HDC hdc,const char* message, int dx, int dy,HFXFONT hFont, COL
 				for(int x=0;x<header->width;x++)
 				{
 					if(((fchar[y]) >> x) & 1)
-						SetPixel(hdc,dx + c + (header->width - x),dy + y,color);
+						SetPixelV(hdc,dx + c + (header->width - x),dy + y,color);
 				}
 			}
 			c+=header->width;
@@ -604,7 +604,7 @@ void FXTextOut(HDC hdc,const char* message, int dx, int dy,const unsigned char* 
             for(int x=0;x<8;x++)
             {
                 if(((fchar[y]) >> x) & 1)
-                    SetPixel(hdc,dx + c + (8 - x),dy + y,color);
+                    SetPixelV(hdc,dx + c + (8 - x),dy + y,color);
             }
         }
         c+=9;
@@ -1103,6 +1103,97 @@ VOID DrawRectanglesV2(HDC hdc, PFXNODELIST compatible)
 	}
 }
 
+
+VOID DrawRectanglesV3(PFXDEVDRV drv, PFXNODELIST compatible)
+{
+	RECT target;
+
+	PFXUIENV pguiEnv = __fx_penv;
+
+	PFXNODELIST renderList = pguiEnv->renderList; 
+
+	PGFXRECT currentFocus = pguiEnv->state->focusCurrent;
+
+	PFXNODE p = renderList->head;
+	
+	// fix me
+	HDC hdc = NULL;
+	
+	
+	while (p != NULL)
+	{
+		PGFXRECT r = (PGFXRECT)p->data;
+		if (!r)
+			break;
+		
+		if ((r->attr & FX_ATTR_VISIBLE) && (r->attr & FX_ATTR_INVALID) && ((r->attr & FX_ATTR_BACKGROUND) == 0) &&  (r == currentFocus) && r->wndInit)
+		{
+			OutputDebugStringA("CURRENT FOCUS UPDATE");
+			if (r->clientRect)
+			{
+				//FillRect(hdc, ToWinRECT(&target, r->clientRect), CreateSolidBrush((COLORREF)RGB(255, 255, 255)));
+				((FXWndProc)r->wndProc)(hdc, 0,0,0,r->clientRect);
+				r->clientRect->attr &= (~FX_ATTR_INVALID);
+			}
+
+			r->attr &= (~FX_ATTR_INVALID);		
+		}
+		else
+		{
+			if ((r->attr & FX_ATTR_VISIBLE) && (r->attr & FX_ATTR_INVALID))
+			{
+				//FillRect(hdc, ToWinRECT(&target, r), CreateSolidBrush((COLORREF)r->renderColor));
+				((PFXGFXFUNCTABLE)drv->pDriverFunctionTable)->DrawFillRect(drv, r, r->renderColor);
+				
+
+				int i = 0;
+
+				if (!r->nonclientList)
+				{
+					r->nonclientList = AllocList();
+					while (fApplyChrome[i])
+					{
+						PGFXRECT rc = fApplyChrome[i++](NULL, r, NULL);
+						if (rc)
+						{
+							ListAddStart(r->nonclientList, rc);
+						}
+					}
+				}
+
+				i = 0;
+				while (fApplyChrome[i])
+				{
+					PGFXRECT rc = fApplyChrome[i++](hdc, r, NULL);
+				}
+
+				if (r->clientRect)
+				{
+					//FillRect(hdc, ToWinRECT(&target, r->clientRect), CreateSolidBrush((COLORREF)RGB(255, 255, 255)));
+					((FXWndProc)r->wndProc)(hdc, 0,0,0,r->clientRect);
+					r->clientRect->attr &= (~FX_ATTR_BACKGROUND);
+				}
+
+				r->wndInit = 1;
+				//r->attr |= (FX_ATTR_CREATED);
+				r->attr &= (~FX_ATTR_BACKGROUND);
+				r->attr &= (~FX_ATTR_INVALID);
+			}
+			else if (r->attr & FX_ATTR_ERASE)
+			{
+				FillRect(hdc, ToWinRECT(&target, r), CreateSolidBrush((COLORREF)r->renderColor));
+				r->attr &= (~FX_ATTR_ERASE);
+			}
+		}
+		
+		
+
+		p = p->next;
+	}
+}
+
+
+
 void RedrawScreen(HWND hWnd,BOOL bBackground)
 {
 	HDC hdc = NULL;
@@ -1123,6 +1214,30 @@ void RedrawScreen(HWND hWnd,BOOL bBackground)
 		{
 			DrawRectanglesV2(hdc, __fx_penv->renderList);
 			ReleaseDC(hWnd, hdc);
+		}
+	}
+}
+
+void RedrawScreenV3(PFXDEVDRV drv,BOOL bBackground)
+{
+	HDC hdc = NULL;
+	
+	if(__fx_penv)
+	{
+		if(drv)
+		{
+			hdc = GetDC((HWND)drv->pDriverData);
+		}
+		else
+		{
+			if(__fx_penv->devdrv && __fx_penv->devdrv->pDriverData)
+				hdc = (HDC)__fx_penv->devdrv->pDriverData;
+		}
+
+		if(hdc)
+		{
+			DrawRectanglesV2(hdc, __fx_penv->renderList);
+			ReleaseDC((HWND)drv->pDriverData, hdc);
 		}
 	}
 }

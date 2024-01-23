@@ -1,5 +1,5 @@
 #include "FXDevices.h"
-
+#include <windows.h>
 
 
 int drvInfo(PFXDEVDRV drv, PFXDEVDRVCTX ctx)
@@ -57,9 +57,19 @@ int drvDrawRect(PFXDEVDRV drv, PFXDEVDRVCTX ctx)
 }
 
 
-int drvDrawFillRect(PFXDEVDRV drv, PFXDEVDRVCTX ctx)
+int drvDrawFillRect(PFXDEVDRV drv, void* r, int color)
 {
-	OutputDebugStringA("DrawFillRect\n");
+	char debug[256];
+	
+	sprintf(debug,"DrawFillRect %p %d\n",drv->pDriverData, color);
+	OutputDebugStringA(debug);
+	
+	HDC hdc = GetDC((HWND)drv->pDriverData); 
+	if(hdc)
+	{
+		FillRect(hdc, (RECT*)r, CreateSolidBrush((COLORREF)color));
+		ReleaseDC((HWND)drv->pDriverData, hdc);
+	}
 	return 0;
 }
 

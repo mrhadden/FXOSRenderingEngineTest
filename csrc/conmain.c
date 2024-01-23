@@ -201,9 +201,9 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 			if(hdc)
 			{	
 				fxRenderChars(hdc,
-				              &(metrics.textBuffer[metrics.cursor_row * metrics.columns]),
-							  metrics.cursor_col + 1,
-				              5, 5 + (fh * metrics.cursor_row),
+				              &(metrics.textBuffer[metrics.cursor_row * metrics.columns + metrics.cursor_col]),
+							  1,
+				              5 + (fw * metrics.cursor_col), 5 + (fh * metrics.cursor_row),
 							  hfx,
 							  RGB(255,255,255),
 					          RGB(64, 64, 64));
@@ -217,7 +217,7 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 			//sprintf(text,"CURSOR:%d,%d (%d)",metrics.cursor_row,metrics.cursor_col,metrics.cursor_row * metrics.columns);
 			//OutputDebugStringA(text);
 			
-			InvalidateRect(hwnd, NULL, TRUE);
+			//InvalidateRect(hwnd, NULL, TRUE);
 			//RedrawScreen(hwnd,FALSE);
 			/*
 			if(IsInvalidRects())

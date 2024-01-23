@@ -103,7 +103,7 @@ void _console_next_char(int charCode)
 			_console_set_char(' ',_fx_screen_cur_row,_fx_screen_cur_col);
 			_fx_screen_cur_row++;
 			_fx_screen_cur_col = 0;
-			return;
+			//return;
 		}
 		else if(charCode == VK_BACK)
 		{			
@@ -112,21 +112,26 @@ void _console_next_char(int charCode)
 			_console_set_char(' ',_fx_screen_cur_row,_fx_screen_cur_col);
 			if(_fx_screen_cur_col < 0)
 			{
-				_fx_screen_cur_col = (_fx_screen_max_col - 1);
-				_fx_screen_cur_row--;
+				//_fx_screen_cur_col = (_fx_screen_max_col - 1);
+				//_fx_screen_cur_row--;
+				//if(_fx_screen_cur_col < 0)
+					_fx_screen_cur_col = 0;
 			}
-			return;
+			//return;
 		}
-
-		
-		_console_set_char(charCode,_fx_screen_cur_row,_fx_screen_cur_col);
-		
-		_fx_screen_cur_col++;
-		if(_fx_screen_cur_col >= _fx_screen_max_col)
+		else
 		{
-			_fx_screen_cur_col = 0;
-			_fx_screen_cur_row++;
+		
+			_console_set_char(charCode,_fx_screen_cur_row,_fx_screen_cur_col);
+			
+			_fx_screen_cur_col++;
+			if(_fx_screen_cur_col >= _fx_screen_max_col)
+			{
+				_fx_screen_cur_col = 0;
+				_fx_screen_cur_row++;
+			}
 		}
+		_console_set_char('_',_fx_screen_cur_row,_fx_screen_cur_col);
 		
 		//_console_set_char(charCode,_fx_screen_cur_row,_fx_screen_cur_col);
 	}

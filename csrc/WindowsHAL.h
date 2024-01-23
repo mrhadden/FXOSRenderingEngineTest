@@ -7,6 +7,19 @@
 #include <synchapi.h>
 
 
+typedef struct _hal_windows_env
+{
+	HINSTANCE hInstance;
+	HINSTANCE hPrevInstance;
+	PWSTR pCmdLine;
+	int nCmdShow;
+	HWND hWnd;
+}HALWINENV;
+typedef HALWINENV* PHALWINENV;
+
+
+
+
 typedef struct _hal_windows_ctx
 {
 	HWND hWnd;

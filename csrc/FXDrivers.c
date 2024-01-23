@@ -8,7 +8,12 @@ PFXDEVDRV LoadDriver(const char* driverName)
 	
 	drv = (PFXDEVDRV)malloc(sizeof(FXDEVDRV));
 	drv->pDriverData = NULL;
-	drv->pDriverFunctionTable = LoadWindowsVideoDriver();
-
+	
+	if(stricmp("WindowsVideoDriver",driverName) == 0)
+	{
+		drv->type = FX_DRV_VIDEO;
+		drv->pDriverFunctionTable = LoadWindowsVideoDriver();
+	}
+	
 	return drv;
 }

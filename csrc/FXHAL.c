@@ -1,6 +1,9 @@
 
 #include "FXHAL.h"
+#include "FXWindow.h"
+#include "pgm.h"
 
+short interruptEnabled = 0;
 PFXNODELIST _fx_hardware_queue = NULL;
 
 char debug[256];
@@ -18,16 +21,23 @@ PFXHDWMSG _fx_copy_hw_message(PFXHDWMSG src)
 	return c;
 }
 
-int _fx_init_hardware()
+int _fx_init_hardware(short enableInterrupts)
 {
-	_hal_debug("_fx_init_hardware\n");
+	_hal_debug("_fx_init_hardware enter\n");
 	
-	
+	interruptEnabled = enableInterrupts;
 	_fx_hardware_queue = AllocListMax("__fx_hdw_queue",256);
 	
-	
+	_hal_debug("_fx_init_hardware exit\n");
 	return 0;
 }
+
+int _fx_enable_interrupts(short enableInterrupts)
+{
+	interruptEnabled = enableInterrupts;
+	return 0;
+}
+
 
 int _fx_cpu_time()
 {
@@ -58,24 +68,54 @@ int _fx_cpu_time()
 			{
 			case FX_IRQ_MOUSE:
 				{
+
 					
 				}
 				break;
 			case FX_IRQ_MOUSE_L:
 				{
 					if(m->w_data2 == 1)
-						_hal_debug("L MOUSE DOWN\n");
+					{
+						int xPos = GET_X_LPARAM(m->l_data1); 
+						int yPos = GET_Y_LPARAM(m->l_data1); 	
+						
+						if(OnClick(xPos,yPos))
+						{
+							RedrawScreenV3(_hal_driver_table[FX_DRV_VIDEO],FALSE);
+						}
+						
+						/*
+						if(pguiEnv->state->isNonClient)
+						{
+							//if(PointInRect((PGFXRECT)pguiEnv->state->focusCurrent->nonclientList->head->data,xPos,yPos ))
+							
+							if(PointInListEx(pguiEnv->state->focusCurrent->nonclientList,xPos,yPos, NULL))
+							{
+								OutputDebugStringA("OnClick NON-CLIENT CLOSE");
+
+								if(OnCtlClick(xPos,yPos))
+								{
+									RedrawScreenV3(_hal_driver_table[FX_DRV_VIDEO],FALSE);
+								}
+								return FALSE;
+							}
+						}
+						*/
+					}
 					else
 						_hal_debug("L MOUSE UP\n");
 				}
 				break;
 			case FX_IRQ_MOUSE_R:
 				{
+					int xPos = GET_X_LPARAM(m->l_data1); 
+					int yPos = GET_Y_LPARAM(m->l_data1); 					
+					
 					if(m->w_data2 == 1)
 					{
 						_hal_debug("R MOUSE DOWN\n");
-						//AddRect("Workbench", xPos, yPos, 400, 200, (void*)clientProc);
-						//RedrawScreen(hwnd, TRUE);
+						AddRect("Workbench", xPos, yPos, 400, 200, (void*)controlProc);
+						RedrawScreenV3(_hal_driver_table[FX_DRV_VIDEO],TRUE);
 					}
 					else
 						_hal_debug("R MOUSE UP\n");
@@ -102,7 +142,11 @@ int _fx_cpu_time()
 
 int _fx_irq_signal(int type, PFXHDWMSG data)
 {
-	_hal_debug(debug);
+	if(!interruptEnabled)
+	{
+		_hal_debug("_fx_irq_signal::interruptEnabled:Interrupts Disabled");
+		return !interruptEnabled;
+	}
 	
 	if(type == FX_IRQ_PROCESS)
 	{
@@ -118,5 +162,5 @@ int _fx_irq_signal(int type, PFXHDWMSG data)
 		_hal_queue_unlock();
 	}
 	
-	return 0;
+	return !interruptEnabled;
 }

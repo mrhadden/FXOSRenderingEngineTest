@@ -6,6 +6,8 @@
 
 #include "FXLIST.h"
 
+#define FX_DRV_VIDEO	0x0F
+
 typedef struct _fx_device_driver_ctx
 {
     void* pContextData;
@@ -14,6 +16,7 @@ typedef FXDEVDRVCTX* PFXDEVDRVCTX;
 
 typedef struct _fx_device_driver
 {
+	int	  type;
     void* pDriverData;
     void* pDriverFunctionTable;
 } FXDEVDRV;
@@ -40,6 +43,10 @@ typedef struct _fx_device_driver_functions
 } FXDRVFUNCTABLE;
 typedef FXDRVFUNCTABLE* PFXDRVFUNCTABLE;
 
+
+typedef int (*funcDrawFillRect)(PFXDEVDRV drv, void*, int color);
+
+
 typedef struct _fx_video_driver_functions
 {
     FXDeviceProc Info;
@@ -50,7 +57,7 @@ typedef struct _fx_video_driver_functions
     FXDeviceProc DrawPoint;
     FXDeviceProc DrawLine;
     FXDeviceProc DrawRect;
-    FXDeviceProc DrawFillRect;
+    funcDrawFillRect DrawFillRect;
     FXDeviceProc DrawFocusRect;
     FXDeviceProc GetPoint;
     FXDeviceProc BitBlt;

@@ -140,6 +140,7 @@ int PointInList(PFXNODELIST pList,int x, int y);
 int PointInListEx(PFXNODELIST pList, int x, int y, PGFXRECT* pFound);
 
 void RedrawScreen(HWND hWnd, BOOL bBackground);
+void RedrawScreenV3(PFXDEVDRV drv,BOOL bBackground);
 void RedrawRect(HWND hWnd,PFXNODE p);
 void RedrawInvalid(HWND hWnd, PFXNODE p);
 void RedrawVisible(PFXNODE p);
